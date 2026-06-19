@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cellos Gelato — Painel de Gestão</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,650&family=Inter:wght@400;500;550;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- ===== Login (demonstração) ===== -->
+<div class="login-screen" id="login">
+  <div class="login-card">
+    <div class="lc-brand">
+      <svg class="logo-mark" width="40" height="40" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M14 21a10 10 0 0 1 20 0z" fill="#a9803f"/>
+        <circle cx="18" cy="18" r="5" fill="#3c6e47"/><circle cx="30" cy="18" r="5" fill="#c9a14e"/>
+        <circle cx="24" cy="14" r="5.5" fill="#e3c7bd"/>
+        <path d="M16 23h16l-7 20a1 1 0 0 1-2 0z" fill="#2c2118"/>
+      </svg>
+      <span class="b-name">Cellos Gelato</span>
+    </div>
+    <h1>Painel de Gestão</h1>
+    <p class="sub">Acesso restrito à equipe da gelateria.</p>
+    <form id="login-form">
+      <label for="lg-user">Usuário</label>
+      <input id="lg-user" type="text" value="gestor" autocomplete="off">
+      <label for="lg-pass">Senha</label>
+      <input id="lg-pass" type="password" value="cellos">
+      <div id="login-error" style="display:none;color:var(--danger);font-size:.82rem;margin:-6px 0 12px">Usuário ou senha inválidos.</div>
+      <button class="btn btn-primary" type="submit">Entrar no painel</button>
+    </form>
+    <div class="login-hint">Demonstração · <strong>gestor / cellos</strong> (vê tudo) &nbsp;·&nbsp; <strong>ana / 123</strong> (caixa)</div>
+  </div>
+</div>
+
+<!-- ===== App ===== -->
+<div class="app" id="app" style="display:none">
+  <aside class="sidebar">
+    <div class="brand">
+      <svg class="logo-mark" width="38" height="38" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M14 21a10 10 0 0 1 20 0z" fill="#a9803f"/>
+        <circle cx="18" cy="18" r="5" fill="#3c6e47"/><circle cx="30" cy="18" r="5" fill="#c9a14e"/>
+        <circle cx="24" cy="14" r="5.5" fill="#e3c7bd"/>
+        <path d="M16 23h16l-7 20a1 1 0 0 1-2 0z" fill="#f4f1ec"/>
+      </svg>
+      <div>
+        <div class="b-name">Cellos Gelato</div>
+        <div class="b-sub">Gestão</div>
+      </div>
+    </div>
+    <nav class="nav-list" id="nav-list"></nav>
+    <div class="sidebar-foot">
+      <a class="sf-link" id="reset-data">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>
+        Reiniciar dados demo
+      </a>
+      <a class="sf-link" href="../index.html">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+        Voltar ao site
+      </a>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="burger-btn" id="burger" aria-label="Menu">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+        </button>
+        <h2 id="topbar-title">Painel</h2>
+      </div>
+      <div class="topbar-right">
+        <div class="user-chip">
+          <span class="avatar">G</span>
+          <span>Gestor</span>
+        </div>
+      </div>
+    </header>
+    <main class="content" id="content"></main>
+  </div>
+</div>
+
+<!-- Núcleo -->
+<script src="core.js"></script>
+<!-- Módulos -->
+<script src="modules/dashboard.js"></script>
+<script src="modules/pdv.js"></script>
+<script src="modules/estoque.js"></script>
+<script src="modules/compras.js"></script>
+<script src="modules/produtos.js"></script>
+<script src="modules/receitas.js"></script>
+<script src="modules/producao.js"></script>
+<script src="modules/limpeza.js"></script>
+<script src="modules/usuarios.js"></script>
+<script src="modules/clientes.js"></script>
+<script src="modules/caixa.js"></script>
+<script src="modules/perdas.js"></script>
+<script src="modules/relatorios.js"></script>
+
+<script>
+  // Boot
+  Cellos.load();
+  var loginForm = document.getElementById("login-form");
+  var login = document.getElementById("login");
+  var app = document.getElementById("app");
+
+  function enter(usuario){
+    // topbar: nome + papel
+    var chip = document.querySelector(".user-chip");
+    if(chip){
+      var papel = usuario.papel === "gestor" ? "Gestor" : "Caixa";
+      chip.querySelector(".avatar").textContent = (usuario.nome || "?").charAt(0).toUpperCase();
+      chip.querySelector("span:last-child").textContent = usuario.nome + " · " + papel;
+    }
+    // o caixa não reinicia dados de demonstração
+    var resetLink = document.getElementById("reset-data");
+    if(resetLink) resetLink.style.display = usuario.papel === "gestor" ? "" : "none";
+
+    login.style.display = "none";
+    app.style.display = "flex";
+    location.hash = "";
+    if(!app.dataset.booted){
+      Cellos.boot(document.getElementById("content"));
+      app.dataset.booted = "1";
+    } else {
+      Cellos.boot(document.getElementById("content"));
+    }
+  }
+
+  loginForm.addEventListener("submit", function(e){
+    e.preventDefault();
+    var u = document.getElementById("lg-user").value;
+    var s = document.getElementById("lg-pass").value;
+    var usuario = Cellos.login(u, s);
+    if(usuario){
+      document.getElementById("login-error").style.display = "none";
+      enter(usuario);
+    } else {
+      document.getElementById("login-error").style.display = "block";
+    }
+  });
+
+  document.getElementById("burger").addEventListener("click", function(){
+    document.body.classList.toggle("nav-open");
+  });
+  document.getElementById("reset-data").addEventListener("click", function(){
+    Cellos.ui.confirm("Restaurar todos os dados de demonstração? As alterações feitas serão perdidas.", {title:"Reiniciar dados", danger:true, okLabel:"Reiniciar"}).then(function(ok){
+      if(ok){ Cellos.reset(); Cellos.ui.toast("Dados de demonstração restaurados.","ok"); Cellos.render(location.hash.slice(1)||"dashboard"); }
+    });
+  });
+</script>
+</body>
+</html>
