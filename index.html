@@ -7,310 +7,215 @@
 <meta name="description" content="Cellos Gelato — gelato artesanal italiano, mantecado fresco todos os dias desde 2013. Sabores autorais, lojas próprias e o Clube Cellos.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400;1,9..144,500&family=Hanken+Grotesk:wght@300;400;500;600;700&family=Spline+Sans+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://upload.wikimedia.org" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Hanken+Grotesk:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
-    --panna:#f1e9d8;        /* bone quente, fundo */
-    --panna-2:#e8dcc4;
-    --crema:#faf4e8;        /* claro */
-    --nero:#1a1512;         /* espresso quase-preto */
-    --nero-2:#241d18;
-    --ink:#241c16;          /* texto sobre claro */
-    --pistacchio:#5b6e46;   /* oliva-pistache maduro */
-    --pistacchio-2:#74894f;
-    --amarena:#8c2d38;      /* cereja italiana — acento principal */
-    --amarena-2:#a93a45;
-    --ottone:#a6824a;       /* latão — detalhes finos */
-    --ottone-2:#c39c5e;
-    --muted:#7c6f5c;
-    --line:rgba(36,28,22,.16);
-    --maxw:1240px;
+    --bg:#faf7f0;
+    --bg-2:#f2ece0;
+    --paper:#ffffff;
+    --ink:#2a2420;
+    --ink-soft:#574e44;
+    --muted:#938778;
+    --line:#e9e1d3;
+    --line-2:#ded3c0;
+    --accent:#5b6e46;       /* pistache — único acento */
+    --amarena:#8c2d38;      /* usado com muita parcimônia */
+    --photo-fallback:#e6d6bd;
+    --maxw:1120px;
     --serif:'Fraunces',Georgia,serif;
     --sans:'Hanken Grotesk',system-ui,sans-serif;
-    --mono:'Spline Sans Mono',ui-monospace,monospace;
   }
   *{box-sizing:border-box;margin:0;padding:0}
   html{scroll-behavior:smooth}
-  body{font-family:var(--sans);color:var(--ink);background:var(--panna);line-height:1.6;overflow-x:hidden;-webkit-font-smoothing:antialiased}
-  /* textura de papel (grão) por cima de tudo */
-  body::before{content:"";position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.045;mix-blend-mode:multiply;
-    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
-  h1,h2,h3,h4,.serif{font-family:var(--serif);font-weight:500;letter-spacing:-.01em}
+  body{font-family:var(--sans);color:var(--ink);background:var(--bg);line-height:1.65;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  h1,h2,h3,.serif{font-family:var(--serif);font-weight:400;letter-spacing:-.01em;line-height:1.1}
   a{color:inherit;text-decoration:none}
-  svg{display:block}
   img{max-width:100%;display:block}
-  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 32px;position:relative;z-index:2}
-  .label{font-family:var(--mono);font-size:.7rem;letter-spacing:.24em;text-transform:uppercase;color:var(--amarena);font-weight:500}
-  .label-num{font-family:var(--mono);font-size:.72rem;letter-spacing:.2em;color:var(--ottone);font-weight:500}
-  .rule{height:1px;background:var(--line);border:none}
-  .btn{display:inline-flex;align-items:center;gap:10px;padding:14px 26px;border-radius:2px;font-family:var(--mono);font-weight:500;font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;border:1px solid transparent;transition:all .3s cubic-bezier(.2,.7,.2,1)}
-  .btn-solid{background:var(--nero);color:var(--panna)}
-  .btn-solid:hover{background:var(--amarena);transform:translateY(-2px)}
-  .btn-line{background:transparent;color:var(--ink);border-color:var(--ink)}
-  .btn-line:hover{background:var(--ink);color:var(--panna)}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 28px}
+  .eyebrow{font-size:.72rem;letter-spacing:.22em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:18px}
+  .photo{background:var(--photo-fallback) center/cover no-repeat}
+  .btn{display:inline-flex;align-items:center;gap:9px;padding:14px 28px;border-radius:40px;font-weight:500;font-size:.92rem;cursor:pointer;border:1px solid transparent;transition:all .3s ease}
+  .btn-solid{background:var(--ink);color:var(--bg)}
+  .btn-solid:hover{background:var(--accent);transform:translateY(-2px)}
+  .btn-line{background:transparent;color:var(--ink);border-color:var(--line-2)}
+  .btn-line:hover{border-color:var(--ink)}
   .btn .arr{transition:transform .3s}
   .btn:hover .arr{transform:translateX(4px)}
 
-  /* ===== top announcement ===== */
-  .ribbon{background:var(--nero);color:var(--panna);font-family:var(--mono);font-size:.68rem;letter-spacing:.18em;text-transform:uppercase;text-align:center;padding:8px 16px;position:relative;z-index:60}
-  .ribbon b{color:var(--ottone-2)}
+  /* NAV */
+  header.nav{position:sticky;top:0;z-index:50;background:rgba(250,247,240,.82);backdrop-filter:blur(12px);border-bottom:1px solid transparent;transition:border-color .3s}
+  header.nav.scrolled{border-color:var(--line)}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:20px 0}
+  .brand{display:flex;align-items:center;gap:12px}
+  .brand .mk{width:38px;height:38px;flex:none}
+  .brand .wm{font-family:var(--serif);font-weight:500;font-size:1.4rem;color:var(--ink);line-height:1}
+  .brand .wm small{display:block;font-family:var(--sans);font-weight:500;font-size:.55rem;letter-spacing:.3em;color:var(--muted);text-transform:uppercase;margin-top:4px}
+  nav.links{display:flex;align-items:center;gap:36px}
+  nav.links a{font-size:.92rem;color:var(--ink-soft);transition:color .2s}
+  nav.links a:hover{color:var(--ink)}
+  nav.links a.cta{border:1px solid var(--line-2);padding:10px 20px;border-radius:40px}
+  nav.links a.cta:hover{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+  .burger{display:none;flex-direction:column;gap:5px;background:none;border:none;cursor:pointer;padding:8px;z-index:60}
+  .burger span{width:25px;height:2px;background:var(--ink);transition:.3s}
 
-  /* ===== NAV ===== */
-  header.nav{position:sticky;top:0;z-index:50;background:rgba(241,233,216,.86);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);transition:padding .3s}
-  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:18px 0}
-  .brand{display:flex;align-items:center;gap:13px}
-  .brand .mk{width:40px;height:40px;flex:none}
-  .brand .wm{font-family:var(--serif);font-weight:600;font-size:1.5rem;line-height:.9;color:var(--nero)}
-  .brand .wm small{display:block;font-family:var(--mono);font-weight:500;font-size:.54rem;letter-spacing:.34em;color:var(--pistacchio);text-transform:uppercase;margin-top:3px}
-  nav.links{display:flex;align-items:center;gap:34px}
-  nav.links a{font-family:var(--mono);font-size:.74rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink);position:relative;padding:4px 0}
-  nav.links a::after{content:"";position:absolute;left:0;bottom:-2px;width:0;height:1px;background:var(--amarena);transition:width .3s}
-  nav.links a:hover::after{width:100%}
-  nav.links a.cta{border:1px solid var(--ink);padding:10px 18px;border-radius:2px}
-  nav.links a.cta::after{display:none}
-  nav.links a.cta:hover{background:var(--nero);color:var(--panna)}
-  .burger{display:none;flex-direction:column;gap:5px;background:none;border:none;cursor:pointer;padding:8px;z-index:61}
-  .burger span{width:26px;height:2px;background:var(--nero);transition:.3s}
+  /* HERO */
+  .hero{padding:70px 0 90px}
+  .hero-grid{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center}
+  .hero h1{font-size:clamp(2.8rem,5.6vw,4.6rem);color:var(--ink);font-weight:400}
+  .hero h1 em{font-style:italic;color:var(--accent)}
+  .hero .lede{font-size:1.14rem;color:var(--ink-soft);max-width:40ch;margin:28px 0 36px;line-height:1.75}
+  .hero-actions{display:flex;gap:14px;flex-wrap:wrap}
+  .hero-photo{aspect-ratio:4/4.4;border-radius:200px 200px 18px 18px;box-shadow:0 50px 90px -50px rgba(42,36,32,.55)}
+  .hero-meta{display:flex;gap:40px;margin-top:54px;padding-top:30px;border-top:1px solid var(--line)}
+  .hero-meta .m b{display:block;font-family:var(--serif);font-size:2rem;color:var(--ink);font-weight:500;line-height:1}
+  .hero-meta .m span{font-size:.82rem;color:var(--muted);margin-top:6px;display:block}
 
-  /* ===== HERO ===== */
-  .hero{position:relative;padding:64px 0 0;overflow:hidden}
-  .hero-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:48px;align-items:center;min-height:78vh}
-  .hero-side{position:absolute;left:-44px;top:50%;transform:rotate(-90deg);transform-origin:center;font-family:var(--mono);font-size:.66rem;letter-spacing:.4em;text-transform:uppercase;color:var(--muted);white-space:nowrap}
-  .hero h1{font-size:clamp(3.2rem,8vw,7rem);line-height:.92;font-weight:600;color:var(--nero);letter-spacing:-.02em}
-  .hero h1 em{font-style:italic;font-weight:400;color:var(--amarena)}
-  .hero .lede{font-size:1.12rem;color:var(--ink);max-width:42ch;margin:30px 0 0;line-height:1.7}
-  .hero-meta{display:flex;gap:30px;margin-top:26px;flex-wrap:wrap}
-  .hero-meta .m{font-family:var(--mono);font-size:.72rem;letter-spacing:.04em;color:var(--muted)}
-  .hero-meta .m b{display:block;font-family:var(--serif);font-size:1.5rem;color:var(--nero);font-weight:600;letter-spacing:0}
-  .hero-actions{display:flex;gap:14px;margin-top:36px;flex-wrap:wrap}
-  .hero-art{position:relative;display:flex;justify-content:center;align-items:center}
-  .hero-plate{position:relative;width:min(420px,92%);aspect-ratio:1;border-radius:50%;
-    background:radial-gradient(circle at 38% 32%,#fbf5ea,#e6d6ba 70%,#d8c4a0);
-    box-shadow:0 40px 80px -40px rgba(26,21,18,.5), inset 0 0 0 1px rgba(166,130,74,.5), inset 0 0 0 9px rgba(250,244,232,.5), inset 0 0 0 10px rgba(166,130,74,.35);
-    display:grid;place-items:center}
-  .hero-plate svg{width:66%;height:auto;filter:drop-shadow(0 22px 26px rgba(26,21,18,.28))}
-  .hero-stamp{position:absolute;right:2%;bottom:2%;width:118px;height:118px;border-radius:50%;border:1px solid var(--ottone);display:grid;place-items:center;text-align:center;background:var(--panna);transform:rotate(-9deg)}
-  .hero-stamp .ring{font-family:var(--mono);font-size:.5rem;letter-spacing:.22em;color:var(--amarena);text-transform:uppercase}
-  .hero-stamp b{font-family:var(--serif);font-size:1.9rem;color:var(--nero);font-weight:600;display:block;line-height:1}
+  /* VALUES strip */
+  .values{border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:var(--bg)}
+  .values-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0}
+  .val{padding:46px 28px;text-align:center;border-right:1px solid var(--line)}
+  .val:last-child{border-right:none}
+  .val .ic{width:30px;height:30px;color:var(--accent);margin:0 auto 16px}
+  .val h3{font-size:1.2rem;color:var(--ink);margin-bottom:8px;font-weight:500}
+  .val p{font-size:.92rem;color:var(--muted);max-width:30ch;margin:0 auto}
 
-  /* ===== MARQUEE ===== */
-  .marquee{border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:var(--nero);color:var(--panna);overflow:hidden;margin-top:56px}
-  .marquee-track{display:flex;gap:0;white-space:nowrap;will-change:transform;animation:scroll-x 38s linear infinite}
-  .marquee:hover .marquee-track{animation-play-state:paused}
-  .marquee span{font-family:var(--serif);font-style:italic;font-size:1.7rem;padding:18px 0;display:inline-flex;align-items:center}
-  .marquee span::after{content:"·";color:var(--ottone-2);margin:0 30px;font-style:normal}
-  @keyframes scroll-x{from{transform:translateX(0)}to{transform:translateX(-50%)}}
-
-  /* ===== SECTION SHELL ===== */
-  section{padding:100px 0;position:relative}
-  .sec-head{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:52px;flex-wrap:wrap}
-  .sec-head h2{font-size:clamp(2.2rem,4.4vw,3.4rem);color:var(--nero);line-height:1.04;font-weight:600;max-width:18ch}
-  .sec-head .stitle{flex:1;min-width:260px}
-  .sec-head .ssub{max-width:34ch;color:var(--muted);font-size:.98rem}
-  .reveal{opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.2,.7,.2,1),transform .9s cubic-bezier(.2,.7,.2,1)}
+  /* SECTION */
+  section{padding:110px 0}
+  .sec-head{text-align:center;max-width:640px;margin:0 auto 64px}
+  .sec-head h2{font-size:clamp(2.1rem,4vw,3.1rem);color:var(--ink);font-weight:400}
+  .sec-head p{color:var(--muted);margin-top:18px;font-size:1.02rem}
+  .reveal{opacity:0;transform:translateY(26px);transition:opacity .9s cubic-bezier(.2,.7,.2,1),transform .9s cubic-bezier(.2,.7,.2,1)}
   .reveal.in{opacity:1;transform:none}
-  .reveal.d1{transition-delay:.08s}.reveal.d2{transition-delay:.16s}.reveal.d3{transition-delay:.24s}.reveal.d4{transition-delay:.32s}
+  .reveal.d1{transition-delay:.08s}.reveal.d2{transition-delay:.16s}.reveal.d3{transition-delay:.24s}
 
-  /* ===== MENU / SABORES ===== */
-  .menu-list{border-top:1px solid var(--line)}
-  .menu-row{display:grid;grid-template-columns:64px 1.1fr 1.5fr auto;gap:24px;align-items:baseline;padding:24px 8px;border-bottom:1px solid var(--line);transition:background .3s,padding .3s;cursor:default}
-  .menu-row:hover{background:var(--crema);padding-left:18px;padding-right:18px}
-  .menu-row .mn{font-family:var(--mono);font-size:.8rem;color:var(--ottone)}
-  .menu-row .name{font-family:var(--serif);font-size:1.5rem;color:var(--nero);font-weight:500}
-  .menu-row .name em{font-style:italic;color:var(--amarena);font-size:.8rem;font-family:var(--mono);letter-spacing:.08em;margin-left:10px;text-transform:uppercase;vertical-align:middle}
-  .menu-row .desc{color:var(--muted);font-size:.92rem;line-height:1.5}
-  .menu-row .tags{display:flex;gap:7px;justify-content:flex-end;flex-wrap:wrap}
-  .tag{font-family:var(--mono);font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;padding:4px 9px;border:1px solid var(--line);border-radius:2px;color:var(--muted)}
-  .tag.v{color:var(--pistacchio);border-color:var(--pistacchio)}
-  .tag.new{color:var(--amarena);border-color:var(--amarena)}
-  .menu-foot{display:flex;justify-content:space-between;align-items:center;margin-top:30px;flex-wrap:wrap;gap:16px}
-  .menu-foot .count{font-family:var(--serif);font-size:2.4rem;color:var(--nero)}
-  .menu-foot .count span{color:var(--amarena)}
+  /* MENU minimal */
+  .menu{max-width:760px;margin:0 auto}
+  .menu-row{display:flex;align-items:baseline;gap:18px;padding:26px 0;border-bottom:1px solid var(--line)}
+  .menu-row:first-child{border-top:1px solid var(--line)}
+  .menu-row .name{font-family:var(--serif);font-size:1.5rem;color:var(--ink);font-weight:400;white-space:nowrap}
+  .menu-row .dots{flex:1;border-bottom:1px dotted var(--line-2);transform:translateY(-5px)}
+  .menu-row .desc{color:var(--muted);font-size:.92rem;max-width:40ch;text-align:right}
+  .menu-row .tag{font-size:.64rem;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-left:10px}
+  .menu-row .tag.v{color:var(--accent)}
+  .menu-foot{text-align:center;margin-top:48px}
+  .menu-foot p{color:var(--muted);margin-bottom:20px;font-family:var(--serif);font-style:italic;font-size:1.3rem}
 
-  /* ===== MANIFESTO (nero block) ===== */
-  .manifesto{background:var(--nero);color:var(--panna);position:relative}
-  .manifesto .label{color:var(--ottone-2)}
-  .manifesto h2{color:var(--crema)}
-  .manifesto .sec-head .ssub{color:rgba(241,233,216,.6)}
-  .promise{display:grid;grid-template-columns:64px 1fr auto;gap:24px;align-items:start;padding:30px 8px;border-bottom:1px solid rgba(241,233,216,.14)}
-  .promise:first-of-type{border-top:1px solid rgba(241,233,216,.14)}
-  .promise .pn{font-family:var(--mono);font-size:.8rem;color:var(--ottone-2)}
-  .promise h4{font-family:var(--serif);font-size:1.5rem;color:var(--crema);font-weight:500}
-  .promise p{color:rgba(241,233,216,.62);font-size:.95rem;max-width:46ch;margin-top:4px}
-  .promise .ic{width:34px;height:34px;color:var(--pistacchio-2)}
+  /* STORY */
+  .story{background:var(--bg-2)}
+  .story-grid{display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center}
+  .story-photo{aspect-ratio:4/4.6;border-radius:18px;box-shadow:0 40px 70px -45px rgba(42,36,32,.5)}
+  .story-copy h2{font-size:clamp(1.9rem,3.4vw,2.7rem);color:var(--ink);margin-bottom:24px;font-weight:400}
+  .story-copy p{color:var(--ink-soft);margin-bottom:18px;font-size:1.04rem;line-height:1.8}
+  .story-sign{font-family:var(--serif);font-style:italic;font-size:1.5rem;color:var(--accent);margin-top:20px}
 
-  /* ===== STORY ===== */
-  .story-grid{display:grid;grid-template-columns:.9fr 1.1fr;gap:60px;align-items:center}
-  .story-art{position:relative}
-  .story-frame{aspect-ratio:4/5;border:1px solid var(--ottone);padding:14px;background:var(--crema);box-shadow:0 30px 60px -36px rgba(26,21,18,.4)}
-  .story-frame .inner{height:100%;background:radial-gradient(circle at 40% 30%,#fff6e8,#e1c9a4 70%,#caa877);display:grid;place-items:center;position:relative;overflow:hidden}
-  .story-frame .inner svg{width:62%;filter:drop-shadow(0 16px 20px rgba(26,21,18,.3))}
-  .story-cap{position:absolute;bottom:-14px;left:24px;background:var(--amarena);color:var(--crema);font-family:var(--mono);font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;padding:8px 16px}
-  .story-copy h2{font-size:clamp(2rem,3.6vw,2.9rem);color:var(--nero);line-height:1.08;margin-bottom:22px;font-weight:600}
-  .story-copy p{color:var(--ink);margin-bottom:18px;font-size:1.02rem;line-height:1.75}
-  .story-copy p.drop::first-letter{font-family:var(--serif);font-size:4.4rem;float:left;line-height:.74;padding:6px 14px 0 0;color:var(--amarena);font-weight:600}
-  .story-sign{font-family:var(--serif);font-style:italic;font-size:1.7rem;color:var(--ottone);margin-top:14px}
+  /* PHOTO BAND */
+  .band{position:relative;min-height:50vh;display:grid;place-items:center;text-align:center;color:#fff}
+  .band::after{content:"";position:absolute;inset:0;background:linear-gradient(rgba(42,36,32,.35),rgba(42,36,32,.55))}
+  .band .band-in{position:relative;z-index:1;max-width:680px;padding:80px 28px}
+  .band h2{font-size:clamp(2rem,4.4vw,3.4rem);color:#fff;font-weight:400}
+  .band h2 em{font-style:italic;color:#f0d9b5}
+  .band p{margin-top:18px;font-size:1.05rem;color:rgba(255,255,255,.85)}
 
-  /* ===== NUMBERS ===== */
-  .nums{background:var(--panna-2)}
-  .nums-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border-top:1px solid var(--line)}
-  .num-cell{padding:38px 18px 30px;border-bottom:1px solid var(--line);border-right:1px solid var(--line)}
-  .num-cell:nth-child(4n){border-right:none}
-  .num-cell .fig{font-family:var(--serif);font-size:clamp(3rem,6vw,5rem);color:var(--nero);line-height:.9;font-weight:600}
-  .num-cell .fig .u{color:var(--amarena);font-size:.5em}
-  .num-cell .cap{font-family:var(--mono);font-size:.72rem;letter-spacing:.04em;color:var(--muted);margin-top:14px;text-transform:uppercase;line-height:1.5}
+  /* CLUBE */
+  .clube-grid{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center}
+  .clube-copy h2{font-size:clamp(2rem,3.6vw,2.8rem);color:var(--ink);margin-bottom:20px;font-weight:400}
+  .clube-copy p{color:var(--ink-soft);margin-bottom:16px;font-size:1.02rem}
+  .clube-copy p em{font-style:italic;color:var(--accent)}
+  .tiers{display:flex;flex-direction:column;gap:2px;margin-top:8px}
+  .tier{display:flex;align-items:center;gap:16px;padding:18px 22px;background:var(--paper);border:1px solid var(--line);border-radius:14px}
+  .tier .dot{width:11px;height:11px;border-radius:50%;flex:none}
+  .tier .tn{font-family:var(--serif);font-size:1.2rem;color:var(--ink);min-width:96px}
+  .tier .tp{color:var(--muted);font-size:.88rem}
 
-  /* ===== LOJAS ===== */
-  .stores-list{border-top:1px solid var(--line)}
-  .store-row{display:grid;grid-template-columns:46px 1fr 1.4fr auto;gap:24px;align-items:center;padding:26px 8px;border-bottom:1px solid var(--line);transition:background .3s,padding .3s}
-  .store-row:hover{background:var(--crema);padding-left:18px}
-  .store-row .si{width:22px;height:22px;color:var(--amarena)}
-  .store-row .sname{font-family:var(--serif);font-size:1.45rem;color:var(--nero)}
-  .store-row .saddr{color:var(--muted);font-size:.92rem}
-  .store-row .shours{font-family:var(--mono);font-size:.72rem;letter-spacing:.04em;color:var(--pistacchio);text-align:right}
+  /* LOJAS */
+  .stores{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;max-width:880px;margin:0 auto}
+  .store{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:28px 26px;transition:transform .3s,box-shadow .3s}
+  .store:hover{transform:translateY(-4px);box-shadow:0 24px 50px -34px rgba(42,36,32,.4)}
+  .store h4{font-family:var(--serif);font-size:1.4rem;color:var(--ink);font-weight:500;margin-bottom:10px}
+  .store .addr{color:var(--muted);font-size:.92rem;margin-bottom:14px;min-height:42px}
+  .store .hours{font-size:.84rem;color:var(--accent);font-weight:500;display:flex;align-items:center;gap:7px}
 
-  /* ===== CLUBE ===== */
-  .clube{background:var(--nero);color:var(--panna)}
-  .clube .label{color:var(--ottone-2)}
-  .clube-top{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:center;margin-bottom:64px}
-  .clube h2{color:var(--crema);font-size:clamp(2rem,3.6vw,3rem);line-height:1.08;margin-bottom:18px;font-weight:600}
-  .clube p{color:rgba(241,233,216,.66);margin-bottom:16px;font-size:1.02rem}
-  .clube p em{color:var(--ottone-2);font-style:italic}
-  .card-3d{perspective:1200px}
-  .member-card{aspect-ratio:1.6/1;border-radius:14px;padding:30px;position:relative;overflow:hidden;
-    background:linear-gradient(135deg,#2a2018,#4a3422 55%,#2a2018);
-    box-shadow:0 40px 80px -40px rgba(0,0,0,.7), inset 0 1px 0 rgba(255,255,255,.08);
-    transform:rotateX(6deg) rotateY(-8deg);transition:transform .5s}
-  .member-card:hover{transform:rotateX(0) rotateY(0)}
-  .member-card::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(115deg,transparent 0 12px,rgba(255,255,255,.018) 12px 13px)}
-  .mc-top{display:flex;justify-content:space-between;align-items:flex-start;position:relative;z-index:1}
-  .mc-brand{font-family:var(--serif);font-size:1.4rem;color:var(--crema);font-weight:600}
-  .mc-brand small{display:block;font-family:var(--mono);font-size:.5rem;letter-spacing:.3em;color:var(--ottone-2);margin-top:3px}
-  .mc-chip{width:42px;height:32px;border-radius:5px;background:linear-gradient(135deg,#d8b878,#a6824a);box-shadow:inset 0 0 0 1px rgba(0,0,0,.2)}
-  .mc-pts{position:relative;z-index:1;margin-top:30px}
-  .mc-pts .v{font-family:var(--serif);font-size:2.3rem;color:var(--ottone-2);font-weight:600}
-  .mc-pts .l{font-family:var(--mono);font-size:.64rem;letter-spacing:.14em;text-transform:uppercase;color:rgba(241,233,216,.5)}
-  .mc-name{position:relative;z-index:1;margin-top:14px;font-family:var(--mono);font-size:.78rem;letter-spacing:.12em;color:var(--crema)}
-  .tiers{border-top:1px solid rgba(241,233,216,.14)}
-  .tier-row{display:grid;grid-template-columns:50px 1fr 2.2fr;gap:24px;align-items:center;padding:24px 8px;border-bottom:1px solid rgba(241,233,216,.14);transition:background .3s,padding .3s}
-  .tier-row:hover{background:rgba(241,233,216,.04);padding-left:16px}
-  .tier-row.feat{background:rgba(166,130,74,.08)}
-  .tier-row .ti{font-family:var(--mono);font-size:.7rem;letter-spacing:.1em;color:var(--ottone-2)}
-  .tier-row .tname{font-family:var(--serif);font-size:1.5rem;color:var(--crema);display:flex;align-items:center;gap:12px}
-  .tier-row .tname .dot{width:10px;height:10px;border-radius:50%}
-  .tier-row .tperk{color:rgba(241,233,216,.66);font-size:.92rem}
-  .tier-row .tperk b{color:var(--crema);font-weight:500}
+  /* GALLERY */
+  .gallery{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+  .gallery .g{aspect-ratio:1;border-radius:14px}
+  .gallery .g.tall{grid-row:span 2;aspect-ratio:auto}
 
-  /* ===== GALLERY ===== */
-  .gallery-grid{display:grid;grid-template-columns:repeat(4,1fr);grid-auto-rows:170px;gap:14px}
-  .gi{position:relative;overflow:hidden;border:1px solid var(--line);display:flex;align-items:flex-end;padding:16px;color:var(--crema)}
-  .gi span{position:relative;z-index:1;font-family:var(--serif);font-style:italic;font-size:1.15rem;text-shadow:0 1px 10px rgba(0,0,0,.4)}
-  .gi.big{grid-column:span 2;grid-row:span 2}
-  .gi.tall{grid-row:span 2}
-  .gi:nth-child(1){background:linear-gradient(160deg,#7d5a3a,#3f2a1a)}
-  .gi:nth-child(2){background:linear-gradient(160deg,#6e8350,#46582f)}
-  .gi:nth-child(3){background:linear-gradient(160deg,#a93a45,#6e222a)}
-  .gi:nth-child(4){background:linear-gradient(160deg,#c8a86a,#9a7a44)}
-  .gi:nth-child(5){background:linear-gradient(160deg,#8c6a8e,#574059)}
-  .gi:nth-child(6){background:linear-gradient(160deg,#caa877,#9a7c4e)}
-  .gi:nth-child(7){background:linear-gradient(160deg,#5b6e46,#3a472c)}
+  /* CTA */
+  .cta{text-align:center}
+  .cta h2{font-size:clamp(2rem,4vw,3rem);color:var(--ink);margin-bottom:16px;font-weight:400}
+  .cta h2 em{font-style:italic;color:var(--accent)}
+  .cta p{color:var(--muted);margin-bottom:30px}
 
-  /* ===== CTA ===== */
-  .cta-strip{background:var(--amarena);color:var(--crema);text-align:center}
-  .cta-strip h2{font-size:clamp(2rem,4vw,3.2rem);color:var(--crema);margin-bottom:14px;line-height:1.06;font-weight:600}
-  .cta-strip h2 em{font-style:italic;color:#f3d9b0}
-  .cta-strip p{font-family:var(--mono);font-size:.78rem;letter-spacing:.06em;color:rgba(250,244,232,.85);margin-bottom:30px;text-transform:uppercase}
-  .cta-strip .btn-solid{background:var(--nero)}
-  .cta-strip .btn-solid:hover{background:var(--crema);color:var(--nero)}
-  .cta-strip .btn-line{border-color:rgba(250,244,232,.6);color:var(--crema)}
-  .cta-strip .btn-line:hover{background:var(--crema);color:var(--amarena)}
-
-  /* ===== FOOTER ===== */
-  footer{background:var(--nero);color:rgba(241,233,216,.6);padding:80px 0 0}
-  .foot-top{display:grid;grid-template-columns:1.8fr 1fr 1fr 1.4fr;gap:40px;padding-bottom:48px;border-bottom:1px solid rgba(241,233,216,.14)}
-  .foot-wm{font-family:var(--serif);font-size:2.6rem;color:var(--crema);font-weight:600;line-height:.9}
-  .foot-wm small{display:block;font-family:var(--mono);font-size:.56rem;letter-spacing:.3em;color:var(--ottone-2);margin-top:8px;text-transform:uppercase}
-  footer p{font-size:.9rem;margin:18px 0;max-width:34ch}
-  footer h5{font-family:var(--mono);font-size:.68rem;letter-spacing:.18em;text-transform:uppercase;color:var(--ottone-2);margin-bottom:16px}
+  /* FOOTER */
+  footer{background:var(--ink);color:rgba(250,247,240,.62);padding:72px 0 0}
+  .foot-grid{display:grid;grid-template-columns:1.6fr 1fr 1fr 1.3fr;gap:40px;padding-bottom:46px;border-bottom:1px solid rgba(250,247,240,.13)}
+  .foot-wm{font-family:var(--serif);font-size:2rem;color:var(--bg);font-weight:500}
+  .foot-wm small{display:block;font-size:.56rem;letter-spacing:.28em;color:var(--muted);margin-top:8px;text-transform:uppercase;font-family:var(--sans)}
+  footer p{font-size:.9rem;margin:16px 0;max-width:32ch}
+  footer h5{font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;color:var(--bg);margin-bottom:16px}
   footer ul{list-style:none;display:flex;flex-direction:column;gap:11px}
-  footer ul a{font-size:.9rem;transition:color .25s}
-  footer ul a:hover{color:var(--crema)}
-  .news{display:flex;border:1px solid rgba(241,233,216,.24);border-radius:2px;overflow:hidden;margin-top:8px}
-  .news input{flex:1;padding:13px 15px;background:transparent;border:none;color:var(--crema);font-family:var(--sans);font-size:.86rem}
-  .news input::placeholder{color:rgba(241,233,216,.4)}
+  footer ul a{font-size:.9rem;transition:color .2s}
+  footer ul a:hover{color:var(--bg)}
+  .news{display:flex;border:1px solid rgba(250,247,240,.22);border-radius:40px;overflow:hidden;margin-top:10px}
+  .news input{flex:1;padding:12px 16px;background:transparent;border:none;color:var(--bg);font-family:inherit;font-size:.86rem}
+  .news input::placeholder{color:rgba(250,247,240,.42)}
   .news input:focus{outline:none}
-  .news button{padding:0 18px;background:var(--ottone);border:none;color:var(--nero);font-family:var(--mono);font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;font-weight:500}
-  .socials{display:flex;gap:10px;margin-top:20px}
-  .socials a{width:40px;height:40px;border:1px solid rgba(241,233,216,.2);border-radius:50%;display:grid;place-items:center;transition:.3s}
-  .socials a:hover{background:var(--ottone);color:var(--nero);border-color:var(--ottone)}
-  .foot-bottom{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;padding:22px 0;font-family:var(--mono);font-size:.68rem;letter-spacing:.06em;color:rgba(241,233,216,.4)}
-  .admin-link{display:inline-flex;align-items:center;gap:7px;color:rgba(241,233,216,.4);transition:color .3s}
-  .admin-link:hover{color:var(--ottone-2)}
+  .news button{padding:0 20px;background:var(--accent);border:none;color:#fff;font-size:.82rem;cursor:pointer}
+  .socials{display:flex;gap:11px;margin-top:18px}
+  .socials a{width:38px;height:38px;border:1px solid rgba(250,247,240,.2);border-radius:50%;display:grid;place-items:center;transition:.3s}
+  .socials a:hover{background:var(--bg);color:var(--ink)}
+  .foot-bottom{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;padding:22px 0;font-size:.76rem;color:rgba(250,247,240,.4)}
+  .admin-link{display:inline-flex;align-items:center;gap:7px;color:rgba(250,247,240,.4);transition:color .3s}
+  .admin-link:hover{color:var(--bg)}
   .admin-link svg{width:14px;height:14px}
 
-  .toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(140px);background:var(--nero);color:var(--crema);padding:13px 26px;border-radius:2px;z-index:80;transition:transform .4s;font-family:var(--mono);font-size:.74rem;letter-spacing:.06em}
+  .toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(140px);background:var(--ink);color:var(--bg);padding:13px 26px;border-radius:40px;z-index:80;transition:transform .4s;font-size:.88rem}
   .toast.show{transform:translateX(-50%) translateY(0)}
 
-  /* ===== RESPONSIVE ===== */
-  @media(max-width:980px){
-    .hero-grid{grid-template-columns:1fr;gap:30px;min-height:auto;padding-bottom:20px}
-    .hero-side{display:none}
-    .hero-art{margin-top:10px}
-    .story-grid,.clube-top{grid-template-columns:1fr;gap:46px}
-    .nums-grid{grid-template-columns:repeat(2,1fr)}
-    .num-cell:nth-child(2n){border-right:none}
-    .gallery-grid{grid-template-columns:repeat(2,1fr)}
-    .gi.big{grid-column:span 2}
-    .foot-top{grid-template-columns:1fr 1fr}
-    .menu-row{grid-template-columns:40px 1fr;gap:10px 16px}
-    .menu-row .desc{grid-column:2}
-    .menu-row .tags{grid-column:2;justify-content:flex-start}
-    .promise{grid-template-columns:40px 1fr}
-    .promise .ic{display:none}
-    .store-row{grid-template-columns:30px 1fr;gap:8px 14px}
-    .store-row .saddr{grid-column:2}
-    .store-row .shours{grid-column:2;text-align:left}
-    .tier-row{grid-template-columns:40px 1fr}
-    .tier-row .tperk{grid-column:2}
-    nav.links{position:fixed;inset:0 0 0 auto;width:78%;max-width:330px;height:100vh;flex-direction:column;justify-content:center;gap:30px;background:var(--panna);border-left:1px solid var(--line);transform:translateX(100%);transition:transform .4s;z-index:55}
+  @media(max-width:900px){
+    .hero-grid,.story-grid,.clube-grid{grid-template-columns:1fr;gap:40px}
+    .hero-photo{order:-1;aspect-ratio:16/12;border-radius:18px}
+    .values-grid{grid-template-columns:1fr}
+    .val{border-right:none;border-bottom:1px solid var(--line);padding:34px}
+    .val:last-child{border-bottom:none}
+    .stores{grid-template-columns:1fr}
+    .gallery{grid-template-columns:repeat(2,1fr)}
+    .gallery .g.tall{grid-row:auto;aspect-ratio:1}
+    .menu-row{flex-wrap:wrap;gap:6px}
+    .menu-row .dots{display:none}
+    .menu-row .desc{text-align:left;max-width:none}
+    .foot-grid{grid-template-columns:1fr 1fr}
+    nav.links{position:fixed;inset:0 0 0 auto;width:78%;max-width:320px;height:100vh;flex-direction:column;justify-content:center;gap:28px;background:var(--bg);border-left:1px solid var(--line);transform:translateX(100%);transition:transform .4s;z-index:55}
     nav.links.open{transform:translateX(0)}
     .burger{display:flex}
   }
-  @media(max-width:600px){
-    .wrap{padding:0 22px}
-    .nums-grid{grid-template-columns:1fr 1fr}
-    .gallery-grid{grid-template-columns:1fr}
-    .gi.big,.gi.tall{grid-column:auto;grid-row:auto}
-    .foot-top{grid-template-columns:1fr}
-    section{padding:72px 0}
+  @media(max-width:560px){
+    .hero-meta{gap:24px}
+    .foot-grid{grid-template-columns:1fr}
+    section{padding:76px 0}
   }
-  @media(prefers-reduced-motion:reduce){
-    .marquee-track{animation:none}
-    .reveal{transition:none;opacity:1;transform:none}
-    *{scroll-behavior:auto}
-  }
+  @media(prefers-reduced-motion:reduce){.reveal{transition:none;opacity:1;transform:none}*{scroll-behavior:auto}}
 </style>
 </head>
 <body>
-
-<div class="ribbon">Mantecato fresco ogni giorno · <b>Gelato artigianale dal 2013</b> · Porto Alegre &amp; Serra Gaúcha</div>
 
 <!-- NAV -->
 <header class="nav" id="nav">
   <div class="wrap nav-inner">
     <a href="#top" class="brand" aria-label="Cellos Gelato">
       <svg class="mk" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-        <circle cx="24" cy="24" r="23" stroke="#a6824a" stroke-width="1"/>
+        <circle cx="24" cy="24" r="23" stroke="#5b6e46" stroke-width="1.2"/>
         <path d="M16 23a8 8 0 0 1 16 0z" fill="#a6824a"/>
         <circle cx="19" cy="20" r="4.2" fill="#5b6e46"/><circle cx="29" cy="20" r="4.2" fill="#8c2d38"/>
         <circle cx="24" cy="17" r="4.6" fill="#e3c7bd"/>
-        <path d="M17 25h14l-6 16a1 1 0 0 1-2 0z" fill="#1a1512"/>
+        <path d="M17 25h14l-6 16a1 1 0 0 1-2 0z" fill="#2a2420"/>
       </svg>
       <span class="wm">Cellos<small>Gelato Artigianale</small></span>
     </a>
     <nav class="links" id="navlinks">
       <a href="#sabori" onclick="closeMenu()">Sabori</a>
-      <a href="#storia" onclick="closeMenu()">Storia</a>
+      <a href="#storia" onclick="closeMenu()">História</a>
       <a href="#lojas" onclick="closeMenu()">Lojas</a>
       <a href="#clube" onclick="closeMenu()">Clube</a>
       <a href="#clube" class="cta" onclick="closeMenu()">Quero meu cartão</a>
@@ -321,353 +226,174 @@
 
 <!-- HERO -->
 <section class="hero" id="top">
-  <div class="wrap">
-    <div class="hero-side">Est. 2013 — Porto Alegre / Gramado / Floripa</div>
-    <div class="hero-grid">
-      <div class="hero-copy">
-        <div class="label reveal in" style="margin-bottom:22px">N.º 01 — Il vero gelato</div>
-        <h1 class="reveal in d1">O gelato<br>de <em>verdade</em>,<br>feito à mão.</h1>
-        <p class="lede reveal in d2">Mantecado fresco todos os dias, na nossa cozinha, com leite selecionado, fruta no ponto e o método italiano que não cabe em pote de fábrica.</p>
-        <div class="hero-meta reveal in d3">
-          <div class="m"><b>40+</b>sabores autorais</div>
-          <div class="m"><b>4</b>lojas próprias</div>
-          <div class="m"><b>11</b>anos de colher</div>
-        </div>
-        <div class="hero-actions reveal in d3">
-          <a href="#sabori" class="btn btn-solid">Ver os sabori <span class="arr">→</span></a>
-          <a href="#lojas" class="btn btn-line">Onde provar</a>
-        </div>
+  <div class="wrap hero-grid">
+    <div class="hero-copy reveal in">
+      <div class="eyebrow">Gelato artigianale · dal 2013</div>
+      <h1>O gelato de<br><em>verdade</em>, feito<br>à mão.</h1>
+      <p class="lede">Mantecado fresco todos os dias, na nossa cozinha, com leite selecionado, fruta no ponto e o método italiano — sem fórmula de fábrica.</p>
+      <div class="hero-actions">
+        <a href="#sabori" class="btn btn-solid">Ver os sabori <span class="arr">→</span></a>
+        <a href="#lojas" class="btn btn-line">Onde provar</a>
       </div>
-      <div class="hero-art reveal in d2">
-        <div class="hero-plate">
-          <svg viewBox="0 0 260 330" xmlns="http://www.w3.org/2000/svg" aria-label="Gelato em casquinha">
-            <path d="M98 168h64l-32 158z" fill="#a6824a"/>
-            <path d="M98 168h64l-32 158z" fill="url(#wf)" opacity=".35"/>
-            <circle cx="130" cy="150" r="44" fill="#e3c7bd"/>
-            <circle cx="101" cy="128" r="38" fill="#5b6e46"/>
-            <circle cx="159" cy="128" r="38" fill="#8c2d38"/>
-            <circle cx="130" cy="104" r="38" fill="#fbf0db"/>
-            <circle cx="130" cy="90" r="8" fill="#8c2d38"/>
-            <path d="M130 82c2-6 8-9 13-7-3 5-7 7-13 7z" fill="#5b6e46"/>
-            <defs><pattern id="wf" width="13" height="13" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><path d="M0 0H13M0 6.5H13" stroke="#6e4a28" stroke-width="2"/></pattern></defs>
-          </svg>
-        </div>
-        <div class="hero-stamp"><span><span class="ring">Artigianale</span><b>Cw</b><span class="ring">Dal 2013</span></span></div>
+      <div class="hero-meta">
+        <div class="m"><b>40+</b><span>sabores autorais</span></div>
+        <div class="m"><b>4</b><span>lojas próprias</span></div>
+        <div class="m"><b>11</b><span>anos de colher</span></div>
       </div>
     </div>
-  </div>
-  <div class="marquee" aria-hidden="true">
-    <div class="marquee-track" id="mq">
-      <span>Pistacchio di Bronte</span><span>Stracciatella</span><span>Nocciola</span><span>Fior di Latte</span><span>Amarena</span><span>Limone</span><span>Doce de Leite</span><span>Fragola</span>
-      <span>Pistacchio di Bronte</span><span>Stracciatella</span><span>Nocciola</span><span>Fior di Latte</span><span>Amarena</span><span>Limone</span><span>Doce de Leite</span><span>Fragola</span>
-    </div>
+    <div class="hero-photo photo reveal in d2" data-img="img/hero.jpg" role="img" aria-label="Gelato em flor"></div>
   </div>
 </section>
+
+<!-- VALUES -->
+<div class="values">
+  <div class="wrap values-grid">
+    <div class="val reveal">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+      <h3>Fresco do dia</h3><p>Produção diária na cozinha de cada loja.</p>
+    </div>
+    <div class="val reveal d1">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 4 13c0-5 5-9 16-9 0 11-4 16-9 16z"/><path d="M8 17c2-5 5-7 9-8"/></svg>
+      <h3>Ingrediente real</h3><p>Fruta da estação e pasta de pistache importada.</p>
+    </div>
+    <div class="val reveal d2">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M4 6l16 12M20 6L4 18"/></svg>
+      <h3>Método italiano</h3><p>Mantecação lenta — denso, cremoso, de verdade.</p>
+    </div>
+  </div>
+</div>
 
 <!-- SABORI -->
 <section id="sabori">
   <div class="wrap">
     <div class="sec-head reveal">
-      <div class="stitle">
-        <div class="label" style="margin-bottom:14px">N.º 02 — Il menù</div>
-        <h2>A carta de sabori da casa</h2>
-      </div>
-      <p class="ssub">Cada receita nasce e termina na nossa cozinha. Estes são os clássicos da temporada — a vitrine muda toda semana.</p>
+      <div class="eyebrow">A carta</div>
+      <h2>Sabori da casa</h2>
+      <p>Cada receita nasce e termina na nossa cozinha. Estes são os clássicos da temporada — a vitrine muda toda semana.</p>
     </div>
-    <div class="menu-list">
-      <div class="menu-row reveal">
-        <div class="mn">01</div>
-        <div class="name">Pistacchio di Bronte</div>
-        <div class="desc">Pasta de pistache siciliano, denso e amanteigado. O nosso mais pedido.</div>
-        <div class="tags"><span class="tag new">Mais vendido</span></div>
-      </div>
-      <div class="menu-row reveal">
-        <div class="mn">02</div>
-        <div class="name">Stracciatella</div>
-        <div class="desc">Creme fior di latte com lascas finas de chocolate quebradas à mão.</div>
-        <div class="tags"><span class="tag">Clássico</span></div>
-      </div>
-      <div class="menu-row reveal">
-        <div class="mn">03</div>
-        <div class="name">Amarena <em>edição</em></div>
-        <div class="desc">Cereja italiana em calda sobre creme — agridoce, intenso, inesquecível.</div>
-        <div class="tags"><span class="tag new">Sazonal</span></div>
-      </div>
-      <div class="menu-row reveal">
-        <div class="mn">04</div>
-        <div class="name">Sorbetto di Limone</div>
-        <div class="desc">À base de fruta e água, sem leite. Cítrico, leve e refrescante.</div>
-        <div class="tags"><span class="tag v">Vegano</span></div>
-      </div>
-      <div class="menu-row reveal">
-        <div class="mn">05</div>
-        <div class="name">Doce de Leite com Flor de Sal</div>
-        <div class="desc">Doce de leite cozido na panela com um toque de sal que corta o açúcar.</div>
-        <div class="tags"><span class="tag">Autoral</span></div>
-      </div>
-      <div class="menu-row reveal">
-        <div class="mn">06</div>
-        <div class="name">Fragola</div>
-        <div class="desc">Sorbet de morango com polpa de fruta da estação. Vivo e perfumado.</div>
-        <div class="tags"><span class="tag v">Vegano</span></div>
-      </div>
+    <div class="menu">
+      <div class="menu-row reveal"><span class="name">Pistacchio di Bronte</span><span class="dots"></span><span class="desc">Pasta de pistache siciliano, denso e amanteigado.<span class="tag">Mais vendido</span></span></div>
+      <div class="menu-row reveal"><span class="name">Stracciatella</span><span class="dots"></span><span class="desc">Creme fior di latte com lascas de chocolate.</span></div>
+      <div class="menu-row reveal"><span class="name">Amarena</span><span class="dots"></span><span class="desc">Cereja italiana em calda sobre creme.<span class="tag">Sazonal</span></span></div>
+      <div class="menu-row reveal"><span class="name">Sorbetto di Limone</span><span class="dots"></span><span class="desc">Fruta e água, sem leite.<span class="tag v">Vegano</span></span></div>
+      <div class="menu-row reveal"><span class="name">Doce de Leite & Flor de Sal</span><span class="dots"></span><span class="desc">Doce de leite cozido na panela com um toque de sal.</span></div>
+      <div class="menu-row reveal"><span class="name">Fragola</span><span class="dots"></span><span class="desc">Sorbet de morango com fruta da estação.<span class="tag v">Vegano</span></span></div>
     </div>
     <div class="menu-foot reveal">
-      <div class="count">e mais <span>+34</span> sabori na vitrine</div>
+      <p>e mais 34 sabori na vitrine</p>
       <a href="#lojas" class="btn btn-line">Provar na loja <span class="arr">→</span></a>
     </div>
   </div>
 </section>
 
-<!-- MANIFESTO -->
-<section class="manifesto">
-  <div class="wrap">
-    <div class="sec-head reveal">
-      <div class="stitle">
-        <div class="label" style="margin-bottom:14px">N.º 03 — Il manifesto</div>
-        <h2>Cinco coisas que a gente não terceiriza</h2>
-      </div>
-      <p class="ssub">Sem franquia, sem fórmula de fábrica. Só o que sai da nossa cozinha, todos os dias.</p>
-    </div>
-    <div class="promise reveal">
-      <div class="pn">01</div>
-      <div><h4>Fresco do dia</h4><p>Produção diária na cozinha de cada loja. Nada de estoque congelado por semanas.</p></div>
-      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
-    </div>
-    <div class="promise reveal">
-      <div class="pn">02</div>
-      <div><h4>Ingrediente de verdade</h4><p>Fruta da estação, leite integral e pasta de pistache importada. Sem atalho.</p></div>
-      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 4 13c0-5 5-9 16-9 0 11-4 16-9 16z"/><path d="M8 17c2-5 5-7 9-8"/></svg>
-    </div>
-    <div class="promise reveal">
-      <div class="pn">03</div>
-      <div><h4>Método italiano</h4><p>Mantecação lenta e baixo ar incorporado — por isso fica tão denso e cremoso.</p></div>
-      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M4 6l16 12M20 6L4 18"/></svg>
-    </div>
-    <div class="promise reveal">
-      <div class="pn">04</div>
-      <div><h4>Receita da casa</h4><p>Cada sabor é desenvolvido por nós. Não compramos base pronta de ninguém.</p></div>
-      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>
-    </div>
-    <div class="promise reveal">
-      <div class="pn">05</div>
-      <div><h4>Menos desperdício</h4><p>Embalagens compostáveis e produção sob demanda para não sobrar.</p></div>
-      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17a5 5 0 0 1-1-9 6 6 0 0 1 11.5 1.5A4.5 4.5 0 0 1 17 17z"/><path d="M9 13l2 2 4-4"/></svg>
-    </div>
-  </div>
-</section>
-
-<!-- STORIA -->
-<section id="storia">
+<!-- STORY -->
+<section class="story" id="storia">
   <div class="wrap story-grid">
-    <div class="story-art reveal">
-      <div class="story-frame">
-        <div class="inner">
-          <svg viewBox="0 0 200 240" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <path d="M72 120h56l-28 110z" fill="#a6824a"/>
-            <circle cx="100" cy="100" r="38" fill="#fbf0db"/>
-            <circle cx="76" cy="86" r="30" fill="#e3c7bd"/>
-            <circle cx="124" cy="86" r="30" fill="#5b6e46"/>
-            <circle cx="100" cy="68" r="30" fill="#8c2d38"/>
-          </svg>
-          <div class="story-cap">A primeira carrocinha · 2013</div>
-        </div>
-      </div>
-    </div>
+    <div class="story-photo photo reveal" data-img="img/cream.jpg" role="img" aria-label="Gelato artesanal"></div>
     <div class="story-copy reveal d2">
-      <div class="label" style="margin-bottom:16px">N.º 04 — La storia</div>
-      <h2>Começou numa carrocinha. Continua na mesma receita.</h2>
-      <p class="drop">Em 2013, a família Cello voltou de uma temporada na Emília-Romanha com um caderno de receitas e uma máquina de segunda mão. O primeiro carrinho parava na praça aos fins de semana — e a fila virou rotina.</p>
+      <div class="eyebrow">A história</div>
+      <h2>Começou numa carrocinha.<br>Continua na mesma receita.</h2>
+      <p>Em 2013, a família Cello voltou de uma temporada na Emília-Romanha com um caderno de receitas e uma máquina de segunda mão. O carrinho parava na praça aos fins de semana — e a fila virou rotina.</p>
       <p>Mais de uma década depois, são quatro lojas próprias, mas teimosamente artesanais: ninguém faz gelato pra gente, e a gente não faz gelato pra mais ninguém.</p>
       <div class="story-sign">— Famiglia Cello</div>
     </div>
   </div>
 </section>
 
-<!-- NUMBERS -->
-<section class="nums">
-  <div class="wrap">
-    <div class="sec-head reveal" style="margin-bottom:30px">
-      <div class="stitle"><div class="label" style="margin-bottom:14px">N.º 05 — In numeri</div><h2>A Cellos em números</h2></div>
+<!-- PHOTO BAND -->
+<section class="band photo" style="padding:0" data-img="img/cones.jpg">
+  <div class="band-in reveal in">
+    <h2>O sabor de <em>parar tudo</em><br>por uma colherada.</h2>
+    <p>Chega, escolhe e prova antes de decidir — a primeira é por nossa conta.</p>
+  </div>
+</section>
+
+<!-- CLUBE -->
+<section id="clube">
+  <div class="wrap clube-grid">
+    <div class="clube-copy reveal">
+      <div class="eyebrow">O Clube</div>
+      <h2>Cada colherada vira recompensa</h2>
+      <p>No <em>Clube Cellos</em>, a cada R$ 1 você junta 1 colher, sobe de nível e desbloqueia mimos — do potinho de aniversário ao gelato grátis todo mês.</p>
+      <p>Gratuito, funciona em todas as lojas, cadastro em 30 segundos.</p>
+      <div class="hero-actions" style="margin-top:26px"><a href="#" class="btn btn-solid" onclick="toast('Cadastro de demonstração');return false;">Criar meu cartão <span class="arr">→</span></a></div>
     </div>
-    <div class="nums-grid">
-      <div class="num-cell reveal"><div class="fig"><span data-count="40">0</span><span class="u">+</span></div><div class="cap">sabores no rodízio do ano</div></div>
-      <div class="num-cell reveal d1"><div class="fig"><span data-count="4">0</span></div><div class="cap">lojas próprias e artesanais</div></div>
-      <div class="num-cell reveal d2"><div class="fig"><span data-count="11">0</span></div><div class="cap">anos fazendo gelato de verdade</div></div>
-      <div class="num-cell reveal d3"><div class="fig"><span data-count="320">0</span><span class="u">mil</span></div><div class="cap">colheradas servidas por ano</div></div>
+    <div class="tiers reveal d2">
+      <div class="tier"><span class="dot" style="background:#a06a3c"></span><span class="tn">Bronzo</span><span class="tp">Potinho grátis no aniversário</span></div>
+      <div class="tier"><span class="dot" style="background:#aeb6bd"></span><span class="tn">Argento</span><span class="tp">+ casquinha de cortesia e adicional grátis</span></div>
+      <div class="tier"><span class="dot" style="background:#c39c5e"></span><span class="tn">Oro</span><span class="tp">+ colheres em dobro toda terça</span></div>
+      <div class="tier"><span class="dot" style="background:#8fc0d4"></span><span class="tn">Diamante</span><span class="tp">+ pote de 1kg no mês do aniversário</span></div>
     </div>
   </div>
 </section>
 
 <!-- LOJAS -->
-<section id="lojas">
+<section id="lojas" style="background:var(--bg-2)">
   <div class="wrap">
     <div class="sec-head reveal">
-      <div class="stitle"><div class="label" style="margin-bottom:14px">N.º 06 — Le botteghe</div><h2>Quatro casas, a mesma colher</h2></div>
-      <p class="ssub">Todas com produção própria na cozinha. Chega, escolhe e prova antes de decidir — é por nossa conta.</p>
+      <div class="eyebrow">Onde provar</div>
+      <h2>Quatro casas, a mesma colher</h2>
     </div>
-    <div class="stores-list">
-      <div class="store-row reveal">
-        <svg class="si" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-5-7-11a7 7 0 0 1 14 0c0 6-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>
-        <div class="sname">Cellos Moinhos</div>
-        <div class="saddr">R. Padre Chagas, 240 — Moinhos de Vento, Porto Alegre/RS</div>
-        <div class="shours">Seg–Dom · 12h–22h30</div>
-      </div>
-      <div class="store-row reveal">
-        <svg class="si" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-5-7-11a7 7 0 0 1 14 0c0 6-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>
-        <div class="sname">Cellos Parcão</div>
-        <div class="saddr">R. Comendador Caminha, 118 — Moinhos, Porto Alegre/RS</div>
-        <div class="shours">Seg–Dom · 11h–23h</div>
-      </div>
-      <div class="store-row reveal">
-        <svg class="si" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-5-7-11a7 7 0 0 1 14 0c0 6-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>
-        <div class="sname">Cellos Gramado</div>
-        <div class="saddr">Av. Borges de Medeiros, 1500 — Centro, Gramado/RS</div>
-        <div class="shours">Seg–Dom · 12h–23h30</div>
-      </div>
-      <div class="store-row reveal">
-        <svg class="si" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-5-7-11a7 7 0 0 1 14 0c0 6-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>
-        <div class="sname">Cellos Beira-Mar</div>
-        <div class="saddr">Av. Atlântica, 980 — Centro, Florianópolis/SC</div>
-        <div class="shours">Qua–Dom · 13h–22h</div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- CLUBE -->
-<section class="clube" id="clube">
-  <div class="wrap">
-    <div class="clube-top">
-      <div class="reveal">
-        <div class="label" style="margin-bottom:16px">N.º 07 — Il club</div>
-        <h2>Cada colherada vira recompensa</h2>
-        <p>O <em>Clube Cellos</em> é nosso programa de pontos — aqui a gente chama de <em>colheres</em>. A cada R$ 1 você junta 1 colher, sobe de nível e desbloqueia mimos: do potinho de aniversário ao gelato grátis todo mês.</p>
-        <p>Gratuito, funciona em todas as lojas, e o cadastro leva 30 segundos no caixa.</p>
-        <div class="hero-actions" style="margin-top:28px">
-          <a href="#" class="btn btn-solid" style="background:var(--ottone);color:var(--nero)" onclick="toast('Cadastro de demonstração');return false;">Criar meu cartão <span class="arr">→</span></a>
-        </div>
-      </div>
-      <div class="reveal d2 card-3d">
-        <div class="member-card">
-          <div class="mc-top">
-            <div class="mc-brand">Cellos<small>Carta Cucchiaio</small></div>
-            <div class="mc-chip"></div>
-          </div>
-          <div class="mc-pts"><div class="v">1.250</div><div class="l">colheres acumuladas</div></div>
-          <div class="mc-name">FELIPE R. · LIVELLO ORO</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="sec-head reveal" style="margin-bottom:0">
-      <div class="stitle"><h2 style="font-size:clamp(1.6rem,2.6vw,2.1rem)">Os quatro níveis</h2></div>
-      <p class="ssub">Quanto mais colher, mais mimo.</p>
-    </div>
-    <div class="tiers" style="margin-top:28px">
-      <div class="tier-row reveal">
-        <div class="ti">Lv 01</div>
-        <div class="tname"><span class="dot" style="background:#a06a3c"></span>Bronzo</div>
-        <div class="tperk">Potinho pequeno grátis na <b>semana do aniversário</b> · acesso antecipado aos lançamentos.</div>
-      </div>
-      <div class="tier-row reveal">
-        <div class="ti">Lv 02</div>
-        <div class="tname"><span class="dot" style="background:#aeb6bd"></span>Argento</div>
-        <div class="tperk">Tudo do Bronzo + <b>casquinha de cortesia</b> no aniversário e adicional grátis sempre.</div>
-      </div>
-      <div class="tier-row feat reveal">
-        <div class="ti">Lv 03</div>
-        <div class="tname"><span class="dot" style="background:#c39c5e"></span>Oro</div>
-        <div class="tperk">Tudo do Argento + <b>colheres em dobro</b> toda terça e casquinha pra você e um acompanhante.</div>
-      </div>
-      <div class="tier-row reveal">
-        <div class="ti">Lv 04</div>
-        <div class="tname"><span class="dot" style="background:#8fc0d4"></span>Diamante</div>
-        <div class="tperk">Tudo do Oro + <b>pote de 1kg + 5 casquinhas</b> no mês do aniversário e degustação dos testes.</div>
-      </div>
+    <div class="stores">
+      <div class="store reveal"><h4>Cellos Moinhos</h4><p class="addr">R. Padre Chagas, 240 — Moinhos de Vento, Porto Alegre/RS</p><div class="hours">Seg–Dom · 12h–22h30</div></div>
+      <div class="store reveal d1"><h4>Cellos Parcão</h4><p class="addr">R. Comendador Caminha, 118 — Moinhos, Porto Alegre/RS</p><div class="hours">Seg–Dom · 11h–23h</div></div>
+      <div class="store reveal"><h4>Cellos Gramado</h4><p class="addr">Av. Borges de Medeiros, 1500 — Centro, Gramado/RS</p><div class="hours">Seg–Dom · 12h–23h30</div></div>
+      <div class="store reveal d1"><h4>Cellos Beira-Mar</h4><p class="addr">Av. Atlântica, 980 — Centro, Florianópolis/SC</p><div class="hours">Qua–Dom · 13h–22h</div></div>
     </div>
   </div>
 </section>
 
 <!-- GALLERY -->
-<section id="gallery">
+<section>
   <div class="wrap">
     <div class="sec-head reveal">
-      <div class="stitle"><div class="label" style="margin-bottom:14px">N.º 08 — @cellosgelato</div><h2>Vem ver de pertinho</h2></div>
-      <p class="ssub">Todo dia tem sabor novo, bastidor da cozinha e gente feliz de colher na mão.</p>
+      <div class="eyebrow">@cellosgelato</div>
+      <h2>De colher na mão</h2>
     </div>
-    <div class="gallery-grid reveal">
-      <div class="gi big"><span>Pistacchio di Bronte</span></div>
-      <div class="gi tall"><span>Stracciatella</span></div>
-      <div class="gi"><span>Amarena</span></div>
-      <div class="gi"><span>Limone</span></div>
-      <div class="gi"><span>Doce de leite</span></div>
-      <div class="gi"><span>Fragola</span></div>
-      <div class="gi"><span>Nocciola</span></div>
+    <div class="gallery reveal">
+      <div class="g tall photo" data-img="img/hero.jpg"></div>
+      <div class="g photo" data-img="img/cream.jpg"></div>
+      <div class="g photo" data-img="img/italian.jpg"></div>
+      <div class="g photo" data-img="img/mango.jpg"></div>
+      <div class="g photo" data-img="img/cones.jpg"></div>
+      <div class="g photo" data-img="img/display.jpg"></div>
+      <div class="g photo" data-img="img/choc.jpg"></div>
     </div>
-    <div style="text-align:center;margin-top:32px" class="reveal"><a href="#" class="btn btn-line" onclick="toast('Site de demonstração');return false;">Seguir @cellosgelato <span class="arr">→</span></a></div>
   </div>
 </section>
 
 <!-- CTA -->
-<section class="cta-strip">
+<section class="cta">
   <div class="wrap reveal">
-    <div class="label" style="color:rgba(250,244,232,.8);margin-bottom:18px">Andiamo</div>
-    <h2>A próxima colherada<br>é <em>por nossa conta.</em></h2>
-    <p>Faça seu cartão do Clube hoje e ganhe um potinho na primeira visita</p>
-    <div class="hero-actions" style="justify-content:center">
-      <a href="#clube" class="btn btn-solid">Criar meu cartão</a>
-      <a href="#lojas" class="btn btn-line">Ver as lojas</a>
-    </div>
+    <h2>A próxima colherada é <em>por nossa conta.</em></h2>
+    <p>Faça seu cartão do Clube hoje e ganhe um potinho na primeira visita.</p>
+    <div class="hero-actions" style="justify-content:center"><a href="#clube" class="btn btn-solid">Criar meu cartão</a><a href="#lojas" class="btn btn-line">Ver as lojas</a></div>
   </div>
 </section>
 
 <!-- FOOTER -->
 <footer>
   <div class="wrap">
-    <div class="foot-top">
+    <div class="foot-grid">
       <div>
         <div class="foot-wm">Cellos<small>Gelato Artigianale · dal 2013</small></div>
-        <p>Gelato artesanal italiano, mantecado fresco todos os dias. Sem franquia, sem fórmula de fábrica — só a receita da casa.</p>
+        <p>Gelato artesanal italiano, mantecado fresco todos os dias. Sem franquia — só a receita da casa.</p>
         <div class="socials">
           <a href="#" onclick="toast('Demonstração');return false;" aria-label="Instagram"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1.2" fill="currentColor" stroke="none"/></svg></a>
-          <a href="#" onclick="toast('Demonstração');return false;" aria-label="Facebook"><svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M14 9h3V6h-3a4 4 0 0 0-4 4v2H7v3h3v6h3v-6h3l1-3h-4v-2a1 1 0 0 1 1-1z"/></svg></a>
           <a href="#" onclick="toast('Demonstração');return false;" aria-label="WhatsApp"><svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15l-1.3 4.7 4.8-1.3A10 10 0 1 0 12 2zm5 14c-.2.6-1.2 1.2-1.7 1.2-.5.1-1 .2-3.2-.7-2.7-1.1-4.4-3.9-4.5-4.1-.1-.2-1.1-1.4-1.1-2.7s.7-1.9 1-2.1c.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.8 2c.1.2.1.3 0 .5l-.4.6c-.2.2-.3.4-.1.7.2.3.9 1.4 1.9 2.2 1.3 1 1.8 1 2.1.9.2-.1.5-.5.7-.8.2-.3.4-.2.6-.1l2 .9c.2.1.4.2.5.3.1.2.1.7-.1 1.3z"/></svg></a>
         </div>
       </div>
+      <div><h5>A carta</h5><ul><li><a href="#sabori">Gelati</a></li><li><a href="#sabori">Sorbetti</a></li><li><a href="#sabori">Caffetteria</a></li></ul></div>
+      <div><h5>A casa</h5><ul><li><a href="#storia">História</a></li><li><a href="#lojas">Lojas</a></li><li><a href="#clube">Clube Cellos</a></li></ul></div>
       <div>
-        <h5>Il menù</h5>
-        <ul>
-          <li><a href="#sabori">Gelati</a></li>
-          <li><a href="#sabori">Sorbetti</a></li>
-          <li><a href="#sabori">Caffetteria</a></li>
-          <li><a href="#sabori">Creme della casa</a></li>
-        </ul>
-      </div>
-      <div>
-        <h5>La casa</h5>
-        <ul>
-          <li><a href="#storia">A história</a></li>
-          <li><a href="#lojas">As lojas</a></li>
-          <li><a href="#clube">Clube Cellos</a></li>
-          <li><a href="#" onclick="toast('Demonstração');return false;">Trabalhe conosco</a></li>
-        </ul>
-      </div>
-      <div>
-        <h5>Riceva i sapori</h5>
-        <p style="margin-top:0">Lançamentos e a agenda das lojas — sem spam, só gelato.</p>
-        <form class="news" onsubmit="toast('Inscrito! (demonstração)');return false;">
-          <input type="email" placeholder="seu@email.com" required aria-label="E-mail">
-          <button type="submit">Quero</button>
-        </form>
+        <h5>Receba sabor novo</h5>
+        <p style="margin-top:0">Lançamentos e a agenda das lojas.</p>
+        <form class="news" onsubmit="toast('Inscrito! (demonstração)');return false;"><input type="email" placeholder="seu@email.com" required aria-label="E-mail"><button type="submit">Quero</button></form>
       </div>
     </div>
     <div class="foot-bottom">
-      <span>© 2024 Cellos Gelato Artigianale · Porto Alegre/RS</span>
-      <a class="admin-link" href="admin/index.html">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-        Acesso da equipe
-      </a>
+      <span>© 2024 Cellos Gelato Artigianale · Porto Alegre/RS · fotos: Wikimedia Commons (CC)</span>
+      <a class="admin-link" href="admin/index.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Acesso da equipe</a>
     </div>
   </div>
 </footer>
@@ -675,20 +401,21 @@
 <div class="toast" id="toast"></div>
 
 <script>
+  // aplica as fotos (data-img) como background — com fallback de cor caso falhe
+  document.querySelectorAll('[data-img]').forEach(function(el){
+    var url = el.getAttribute('data-img');
+    var img = new Image();
+    img.onload = function(){ el.style.backgroundImage = "url('" + url + "')"; };
+    img.src = url;
+  });
+
   var nav = document.getElementById('nav'), navlinks = document.getElementById('navlinks');
+  window.addEventListener('scroll', function(){ nav.classList.toggle('scrolled', window.scrollY > 20); }, {passive:true});
   function toggleMenu(){ navlinks.classList.toggle('open'); }
   function closeMenu(){ navlinks.classList.remove('open'); }
 
   var io = new IntersectionObserver(function(e){ e.forEach(function(x){ if(x.isIntersecting){ x.target.classList.add('in'); io.unobserve(x.target); } }); }, {threshold:0.12, rootMargin:'0px 0px -40px 0px'});
   document.querySelectorAll('.reveal:not(.in)').forEach(function(el){ io.observe(el); });
-
-  function animateCount(el){
-    var target = +el.dataset.count, dur = 1500, start = performance.now();
-    function tick(now){ var p = Math.min((now-start)/dur,1), e = 1-Math.pow(1-p,3); el.textContent = Math.floor(e*target).toLocaleString('pt-BR'); if(p<1) requestAnimationFrame(tick); else el.textContent = target.toLocaleString('pt-BR'); }
-    requestAnimationFrame(tick);
-  }
-  var cio = new IntersectionObserver(function(e){ e.forEach(function(x){ if(x.isIntersecting){ animateCount(x.target); cio.unobserve(x.target); } }); }, {threshold:0.6});
-  document.querySelectorAll('[data-count]').forEach(function(el){ cio.observe(el); });
 
   var tt;
   function toast(m){ var t=document.getElementById('toast'); t.textContent=m; t.classList.add('show'); clearTimeout(tt); tt=setTimeout(function(){ t.classList.remove('show'); }, 2600); }
