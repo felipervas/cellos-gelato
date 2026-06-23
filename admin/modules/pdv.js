@@ -13,7 +13,7 @@
   var formaPagamento = "Pix";
   var valorRecebido = null;
   var clienteAtual = null;
-  var usarCashback = false;
+  var resgateSel = null; // null | {tipo:'cashback'} | {tipo:'brinde'} | {tipo:'premio', premioId, nome}
 
   function root() { return document.getElementById("content"); }
 
@@ -59,48 +59,95 @@
   }
 
   // ---- cliente / clube ----
+  function progBar(pct) { return h("div", { class: "bar-line" }, h("span", { style: { width: Math.max(0, Math.min(100, pct)) + "%" } })); }
+
+  function cadastrarRapido(q) {
+    var dig = (q || "").replace(/\D/g, "");
+    ui.formModal({
+      title: "Novo cliente — Clube Cellos", size: "sm",
+      fields: [
+        { name: "nome", label: "Nome", type: "text", required: true, full: true },
+        { name: "telefone", label: "Telefone", type: "text", value: dig.length === 11 ? "" : q },
+        { name: "cpf", label: "CPF", type: "text", value: dig.length === 11 ? q : "" },
+        { name: "aniversario", label: "Aniversário (MM-DD)", type: "text", placeholder: "ex.: 06-15" }
+      ]
+    }).then(function (v) {
+      if (!v) return;
+      clienteAtual = C.insert("clientes", { nome: v.nome, telefone: v.telefone || "", cpf: v.cpf || "", aniversario: v.aniversario || "", pontos: 0, cashback: 0, nivel: "Bronze", selos: 0, brindesDisponiveis: 0, visitas: 0, totalGasto: 0, primeiraCompra: C.todayISO(), ultimaCompra: C.todayISO(), codigo: "", indicadoPor: null });
+      resgateSel = null; ui.toast("Cliente cadastrado no Clube.", "ok"); desenhaCarrinho();
+    });
+  }
+
   function blocoCliente(head) {
     var wrap = h("div", { class: "cart-cliente-wrap" }, h("label", { class: "small muted", text: "Cliente (Clube Cellos)" }));
     var box = h("div", {});
     if (clienteAtual) {
-      var fechar = ui.iconButton("close", function () { clienteAtual = null; usarCashback = false; desenhaCarrinho(); }, "Remover cliente");
-      var chip = h("div", { class: "cli-chip" },
+      var fid = C.get().config.fidelidade || {}, meta = fid.selosMeta || 10;
+      var prog = C.progressoNivel(clienteAtual);
+      var fechar = ui.iconButton("close", function () { clienteAtual = null; resgateSel = null; desenhaCarrinho(); }, "Remover cliente");
+      var chip = h("div", { class: "cli-chip" }, fechar,
         h("div", {}, h("b", { text: clienteAtual.nome }), " ", ui.badge(clienteAtual.nivel, "accent")),
-        h("div", { class: "small muted", text: fmt.int(clienteAtual.pontos) + " pts · cashback " + fmt.money(clienteAtual.cashback) }),
-        fechar
+        h("div", { class: "small muted", text: fmt.int(clienteAtual.pontos) + " colheres · " + (clienteAtual.cpf || clienteAtual.telefone || "") }),
+        h("div", { class: "cli-prog", style: { marginTop: "8px" } },
+          h("div", { class: "flex between small", style: { marginBottom: "3px" } }, h("span", { text: "Cartão de selos" }), h("span", { text: (clienteAtual.selos || 0) + "/" + meta })),
+          progBar((clienteAtual.selos || 0) / meta * 100)),
+        prog.proximo ? h("div", { style: { marginTop: "7px" } },
+          h("div", { class: "flex between small", style: { marginBottom: "3px" } }, h("span", { text: "Faltam " + prog.faltam + " pro " + prog.proximo }), h("span", { text: prog.pct + "%" })),
+          progBar(prog.pct)) : null,
+        (clienteAtual.brindesDisponiveis || 0) > 0 ? h("div", { class: "cli-brinde small", style: { marginTop: "8px" } }, h("span", { html: C.icon("presente", 14) }), clienteAtual.brindesDisponiveis + " brinde(s) disponível(is)") : null
       );
-      if (clienteAtual.cashback > 0) {
-        var cashChk = h("input", { type: "checkbox" }); cashChk.checked = usarCashback; cashChk.style.marginRight = "6px";
-        cashChk.addEventListener("change", function () { usarCashback = cashChk.checked; desenhaCarrinho(); });
-        chip.appendChild(h("label", { class: "flex items-center small", style: { marginTop: "6px", cursor: "pointer" } }, cashChk, "Usar cashback (" + fmt.money(clienteAtual.cashback) + ")"));
-      }
       box.appendChild(chip);
+      // seletor de resgate
+      var sel = h("select", { style: { width: "100%", marginTop: "8px", padding: "8px 10px", borderRadius: "9px", border: "1px solid var(--line-strong)", fontFamily: "inherit", fontSize: ".85rem" } });
+      sel.appendChild(h("option", { value: "", text: "Resgatar… (nenhum)" }));
+      if ((clienteAtual.brindesDisponiveis || 0) > 0) sel.appendChild(h("option", { value: "brinde", text: "Brinde do cartão — " + (fid.brindeNome || "grátis") }));
+      C.table("premios").filter(function (p) { return p.ativo !== false && (clienteAtual.pontos || 0) >= p.custoPontos; }).forEach(function (p) { sel.appendChild(h("option", { value: "pm:" + p.id, text: p.nome + " (" + p.custoPontos + " colheres)" })); });
+      if ((clienteAtual.cashback || 0) > 0) sel.appendChild(h("option", { value: "cashback", text: "Usar cashback (" + fmt.money(clienteAtual.cashback) + ")" }));
+      sel.value = resgateSel ? (resgateSel.tipo === "premio" ? "pm:" + resgateSel.premioId : resgateSel.tipo) : "";
+      sel.addEventListener("change", function () {
+        var v = sel.value;
+        if (!v) resgateSel = null;
+        else if (v === "brinde") resgateSel = { tipo: "brinde" };
+        else if (v === "cashback") resgateSel = { tipo: "cashback" };
+        else if (v.indexOf("pm:") === 0) { var pid = v.slice(3); var pm = C.find("premios", pid); resgateSel = { tipo: "premio", premioId: pid, nome: pm ? pm.nome : "" }; }
+        desenhaCarrinho();
+      });
+      box.appendChild(sel);
     } else {
-      var inp = h("input", { type: "text", placeholder: "Telefone ou nome", style: { width: "100%", padding: "8px 10px", borderRadius: "9px", border: "1px solid var(--line-strong)", fontFamily: "inherit", fontSize: ".86rem" } });
+      var inp = h("input", { type: "text", placeholder: "Telefone ou CPF", style: { width: "100%", padding: "8px 10px", borderRadius: "9px", border: "1px solid var(--line-strong)", fontFamily: "inherit", fontSize: ".86rem" } });
       var btn = ui.button("Buscar", { variant: "ghost" }); btn.classList.add("btn-sm");
-      function buscar() {
+      var buscar = function () {
         var q = inp.value.trim(); if (!q) return;
-        var digits = q.replace(/\D/g, "");
-        var cli = C.table("clientes").find(function (c) {
-          var cd = (c.telefone || "").replace(/\D/g, "");
-          return (digits.length >= 4 && cd.indexOf(digits) >= 0) || c.nome.toLowerCase().indexOf(q.toLowerCase()) >= 0;
-        });
-        if (cli) { clienteAtual = cli; desenhaCarrinho(); }
-        else {
-          ui.confirm("Cliente não encontrado. Cadastrar \"" + q + "\" no Clube?", { title: "Novo cliente", okLabel: "Cadastrar" }).then(function (okc) {
-            if (okc) {
-              clienteAtual = C.insert("clientes", { nome: q, telefone: q, pontos: 0, cashback: 0, nivel: "Bronze", visitas: 0, totalGasto: 0, primeiraCompra: C.todayISO(), ultimaCompra: C.todayISO(), aniversario: "", codigo: "", indicadoPor: null });
-              ui.toast("Cliente cadastrado.", "ok"); desenhaCarrinho();
-            }
-          });
-        }
-      }
+        var cli = C.buscarCliente(q);
+        if (cli) { clienteAtual = cli; resgateSel = null; desenhaCarrinho(); }
+        else { cadastrarRapido(q); }
+      };
       btn.addEventListener("click", buscar);
       inp.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); buscar(); } });
       box.appendChild(h("div", { class: "flex", style: { gap: "6px" } }, h("div", { style: { flex: "1" } }, inp), btn));
     }
     wrap.appendChild(box);
     head.appendChild(wrap);
+  }
+
+  // desconto de resgate para PRÉVIA no carrinho (o cálculo real é no core)
+  function descontoPreview(totalBruto) {
+    if (!clienteAtual || !resgateSel) return { valor: 0, desc: "" };
+    if (resgateSel.tipo === "cashback") return { valor: Math.round(Math.min(clienteAtual.cashback || 0, totalBruto) * 100) / 100, desc: "Cashback do Clube" };
+    if (resgateSel.tipo === "brinde") { var bp = C.find("produtos", "pr_casq_1"); return { valor: Math.min(bp ? bp.precoVenda : 0, totalBruto), desc: (C.get().config.fidelidade.brindeNome || "Brinde do cartão") }; }
+    if (resgateSel.tipo === "premio") {
+      var pm = C.find("premios", resgateSel.premioId), pv = 0;
+      if (pm) { if (pm.tipo === "desconto") pv = pm.valor || 0; else if (pm.tipo === "produto") { var pp = C.find("produtos", pm.produtoId); pv = pp ? pp.precoVenda : 0; } else if (pm.tipo === "cobertura") pv = 3; }
+      return { valor: Math.min(pv, totalBruto), desc: pm ? pm.nome : "Prêmio" };
+    }
+    return { valor: 0, desc: "" };
+  }
+  function resgatePayload() {
+    if (!clienteAtual || !resgateSel) return null;
+    if (resgateSel.tipo === "cashback") return { cashback: clienteAtual.cashback };
+    if (resgateSel.tipo === "brinde") return { brinde: true };
+    if (resgateSel.tipo === "premio") return { premioId: resgateSel.premioId };
+    return null;
   }
 
   // ---- carrinho ----
@@ -146,14 +193,13 @@
 
     var totalBruto = carrinho.reduce(function (s, l) { return s + precoLinha(l) * l.qtd; }, 0);
     totalBruto = Math.round(totalBruto * 100) / 100;
-    var descCashback = (clienteAtual && usarCashback) ? Math.min(clienteAtual.cashback || 0, totalBruto) : 0;
-    descCashback = Math.round(descCashback * 100) / 100;
-    var total = Math.round((totalBruto - descCashback) * 100) / 100;
+    var resg = descontoPreview(totalBruto);
+    var total = Math.round((totalBruto - resg.valor) * 100) / 100;
 
     var foot = h("div", { class: "cart-foot" });
-    if (descCashback > 0) {
+    if (resg.valor > 0) {
       foot.appendChild(h("div", { class: "flex between small muted", style: { marginBottom: "4px" } }, h("span", { text: "Subtotal" }), h("span", { text: fmt.money(totalBruto) })));
-      foot.appendChild(h("div", { class: "flex between small", style: { marginBottom: "4px", color: "var(--accent)" } }, h("span", { text: "Cashback do Clube" }), h("span", { text: "− " + fmt.money(descCashback) })));
+      foot.appendChild(h("div", { class: "flex between small", style: { marginBottom: "4px", color: "var(--accent)" } }, h("span", { text: "Resgate: " + resg.desc }), h("span", { text: "− " + fmt.money(resg.valor) })));
     }
     foot.appendChild(h("div", { class: "cart-total" },
       h("span", { class: "ct-lbl", text: "Total (" + carrinho.reduce(function (s, l) { return s + l.qtd; }, 0) + " itens)" }),
@@ -207,11 +253,11 @@
       var venda = C.registrarVenda({
         operador: operSel.value, formaPagamento: formaPagamento, valorRecebido: valorRecebido,
         clienteId: clienteAtual ? clienteAtual.id : null,
-        resgate: (clienteAtual && usarCashback) ? { cashback: clienteAtual.cashback } : null,
+        resgate: resgatePayload(),
         itens: carrinho.map(function (l) { return { produtoId: l.produtoId, qtd: l.qtd, adicionais: l.adicionais }; })
       });
       if (venda) {
-        carrinho = []; valorRecebido = null; clienteAtual = null; usarCashback = false;
+        carrinho = []; valorRecebido = null; clienteAtual = null; resgateSel = null;
         confirmacao(venda);
         render(root());
       }
@@ -222,7 +268,10 @@
 
   function confirmacao(venda) {
     var extra = "";
-    if (venda.clienteId && venda.pontosGanhos) extra = " · +" + venda.pontosGanhos + " pts no Clube";
+    if (venda.clienteId && venda.pontosGanhos != null) {
+      extra = " · +" + venda.pontosGanhos + " colheres" + (venda.pontosDobro ? " (em dobro!)" : "");
+      if (venda.brindesGanhos) extra += " · ganhou um gelato grátis!";
+    }
     if (venda.formaPagamento === "Dinheiro" && venda.troco != null) {
       var body = h("div", {},
         h("div", { style: { textAlign: "center", padding: "8px 0 16px" } },

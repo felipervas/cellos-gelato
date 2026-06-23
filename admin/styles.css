@@ -321,6 +321,8 @@ button{font-family:inherit}
 .cart-cliente-wrap{margin-top:10px}
 .cli-chip{background:var(--accent-soft);border-radius:10px;padding:9px 11px;display:flex;flex-direction:column;gap:2px;position:relative}
 .cli-chip .icon-btn{position:absolute;top:6px;right:6px;width:24px;height:24px;background:transparent;border:none}
+.cli-brinde{color:var(--accent-2);font-weight:600;display:flex;align-items:center;gap:6px}
+.cli-prog .bar-line{height:6px}
 .cl-add{font-size:.72rem;color:var(--accent);cursor:pointer;margin-top:2px;display:inline-flex;align-items:center;gap:3px}
 .cl-add:hover{text-decoration:underline}
 .cl-adic{font-size:.74rem;color:var(--accent-2);margin-top:1px}

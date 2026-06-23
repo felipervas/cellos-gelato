@@ -9,7 +9,7 @@
 window.Cellos = (function () {
   "use strict";
 
-  const KEY = "cellos_db_v7";
+  const KEY = "cellos_db_v8";
 
   /* ---------- utilitários básicos ---------- */
   function uid(prefix) {
@@ -91,6 +91,9 @@ window.Cellos = (function () {
     grafico: '<path d="M3 3v18h18"/><path d="M7 14l3-4 3 3 4-6"/>',
     star: '<path d="M12 3l2.4 6.9H22l-6 4.4 2.3 7-6.3-4.5L5.7 21l2.3-7-6-4.4h7.6z"/>',
     sino: '<path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M10.5 21a1.5 1.5 0 0 0 3 0"/>',
+    presente: '<rect x="3" y="8" width="18" height="13" rx="1"/><path d="M3 12h18M12 8v13M12 8S10 3 7.5 3 5 7 12 8zM12 8s2-5 4.5-5S19 7 12 8z"/>',
+    qrcode: '<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3M21 14v7h-7M17 21h.01"/>',
+    whatsapp: '<path d="M12 2a10 10 0 0 0-8.6 15L2 22l5.2-1.4A10 10 0 1 0 12 2z"/><path d="M8.5 8.5c0 4 3 7 7 7 .8 0 1.2-1.2.6-1.7l-1.6-1-1 1c-1.4-.6-2.3-1.5-2.9-2.9l1-1-1-1.6c-.5-.6-1.7-.2-1.7.6z"/>',
     alert: '<path d="M12 3l9 16H3z"/><path d="M12 10v4M12 17.5v.5"/>',
     plus: '<path d="M12 5v14M5 12h14"/>',
     edit: '<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/>',
@@ -283,6 +286,25 @@ window.Cellos = (function () {
       nome: "Cellos Gelato",
       percOperacionalPadrao: 10,
       operadores: ["Ana", "Pedro", "Júlia", "Marco", "Bruna"],
+      // ----- Programa de fidelidade (configurável pelo gestor) -----
+      fidelidade: {
+        pontosPorReal: 1,          // 1 colher a cada R$ 1
+        selosMeta: 10,             // compre 10, ganhe 1
+        brindeNome: "Casquinha 1 bola grátis",
+        diaEmDobro: 2,             // 0=dom ... 2=terça (colheres em dobro)
+        validadeDias: 365,         // pontos expiram em 12 meses
+        niveis: [
+          { nome: "Bronze", min: 0, cor: "#a06a3c" },
+          { nome: "Prata", min: 250, cor: "#aeb6bd" },
+          { nome: "Ouro", min: 800, cor: "#c39c5e" },
+          { nome: "Diamante", min: 2000, cor: "#8fc0d4" }
+        ],
+        // modelos de mensagem (variáveis: {{nome}} {{faltam}} {{recompensa}} {{selos}} {{nivel}})
+        msgQuaseBrinde: "Oi, {{nome}}! Faltam só {{faltam}} selo(s) pro seu gelato grátis no Clube Cellos. Passa aqui hoje? 🍨",
+        msgQuaseNivel: "{{nome}}, você está a {{faltam}} colheres de virar {{nivel}} na Cellos e desbloquear mais vantagens. Bora um gelato?",
+        msgAniversario: "Feliz aniversário, {{nome}}! 🎉 Seu mimo do Clube Cellos te espera essa semana: {{recompensa}}.",
+        msgReativacao: "Saudade de você, {{nome}}! Faz tempo que não te vemos. Volta tomar um gelato — você ainda tem {{selos}}/10 selos no cartão."
+      },
       criadoEm: nowISO()
     };
 
@@ -440,10 +462,13 @@ window.Cellos = (function () {
       const rec = recencias[i % recencias.length];
       const pontos = Math.floor(totalGasto) - Math.floor(Math.random() * 80);
       const aniversario = (i < 3 ? "06" : String(1 + Math.floor(Math.random() * 12)).padStart(2, "0")) + "-" + String(1 + Math.floor(Math.random() * 27)).padStart(2, "0");
+      const d = String(11111111100 + i * 1234567).slice(0, 11);
       return {
         id: uid("cli"), nome: nome,
         telefone: "(51) 9" + (8100 + i * 37).toString().slice(0, 4) + "-" + (1000 + i * 53).toString().slice(0, 4),
+        cpf: d.slice(0, 3) + "." + d.slice(3, 6) + "." + d.slice(6, 9) + "-" + d.slice(9, 11),
         pontos: Math.max(0, pontos), cashback: Math.round(Math.random() * 18 * 100) / 100, nivel: nivelPorPontos(Math.max(0, pontos)),
+        selos: Math.floor(Math.random() * 8), brindesDisponiveis: 0,
         visitas: visitas, totalGasto: totalGasto,
         primeiraCompra: daysFromNow(-(rec + 30 + Math.floor(Math.random() * 320))),
         ultimaCompra: daysFromNow(-rec), aniversario: aniversario,
@@ -452,6 +477,12 @@ window.Cellos = (function () {
     });
     clientes[5].indicadoPor = clientes[0].id;
     clientes[9].indicadoPor = clientes[2].id;
+    // "quase lá" — para a demonstração do destaque + mensagem
+    clientes[0].selos = 9;                                                  // a 1 selo do gelato grátis
+    clientes[3].selos = 8;                                                  // a 2 selos
+    clientes[6].pontos = 232; clientes[6].nivel = nivelPorPontos(232);      // a 18 colheres do Prata
+    clientes[2].pontos = 765; clientes[2].nivel = nivelPorPontos(765);      // a 35 colheres do Ouro
+    clientes[4].brindesDisponiveis = 1;                                     // já tem brinde pra resgatar
 
     // perdas / desperdício
     function custoInsumoSeed(itemId, qtd) { const it = itens.find(function (x) { return x.id === itemId; }); return it ? Math.round(it.custoUnit * qtd * 100) / 100 : 0; }
@@ -481,11 +512,21 @@ window.Cellos = (function () {
       }
     ];
 
+    // Catálogo de prêmios (trocados por colheres no caixa)
+    const premios = [
+      { id: "pm_cobertura", nome: "Cobertura extra grátis", custoPontos: 40, tipo: "cobertura", ativo: true },
+      { id: "pm_casq1", nome: "Casquinha 1 bola grátis", custoPontos: 120, tipo: "produto", produtoId: "pr_casq_1", ativo: true },
+      { id: "pm_desc5", nome: "R$ 5 de desconto", custoPontos: 150, tipo: "desconto", valor: 5, ativo: true },
+      { id: "pm_pot_m", nome: "Potinho Médio grátis", custoPontos: 220, tipo: "produto", produtoId: "pr_pot_m", ativo: true },
+      { id: "pm_desc15", nome: "R$ 15 de desconto", custoPontos: 400, tipo: "desconto", valor: 15, ativo: true },
+      { id: "pm_via1l", nome: "Pote Viagem 1L grátis", custoPontos: 700, tipo: "produto", produtoId: "pr_via_1l", ativo: true }
+    ];
+
     return {
       locais: locais, fornecedores: fornecedores, itens: itens, produtos: produtos, sabores: sabores, coberturas: coberturas,
       vendas: vendas, movimentacoes: movimentacoes, compras: compras, receitas: receitas,
       producao: producao, limpezaTarefas: limpezaTarefas, limpezaRegistros: limpezaRegistros,
-      clientes: clientes, perdas: perdas, caixaSessions: caixaSessions,
+      clientes: clientes, perdas: perdas, caixaSessions: caixaSessions, premios: premios,
       usuarios: usuarios, config: config
     };
   }
@@ -582,7 +623,52 @@ window.Cellos = (function () {
       localId: it.localId, motivo: "Venda PDV #" + venda.numero + (extra ? " · " + extra : ""), responsavel: venda.operador, refId: venda.id
     });
   }
-  function nivelCliente(pontos) { return pontos >= 2000 ? "Diamante" : pontos >= 800 ? "Ouro" : pontos >= 250 ? "Prata" : "Bronze"; }
+  function niveisFidelidade() {
+    return (db.config && db.config.fidelidade && db.config.fidelidade.niveis) || [
+      { nome: "Bronze", min: 0 }, { nome: "Prata", min: 250 }, { nome: "Ouro", min: 800 }, { nome: "Diamante", min: 2000 }
+    ];
+  }
+  function nivelCliente(pontos) {
+    const ns = niveisFidelidade(); let nome = ns[0].nome;
+    for (let i = 0; i < ns.length; i++) { if ((pontos || 0) >= ns[i].min) nome = ns[i].nome; }
+    return nome;
+  }
+  // progresso até o próximo nível: {nivel, proximo, faltam, pct}
+  function progressoNivel(cliente) {
+    const ns = niveisFidelidade(), p = (cliente && cliente.pontos) || 0;
+    let atual = ns[0], prox = null;
+    for (let i = 0; i < ns.length; i++) { if (p >= ns[i].min) { atual = ns[i]; prox = ns[i + 1] || null; } }
+    if (!prox) return { nivel: atual.nome, proximo: null, faltam: 0, pct: 100 };
+    const faltam = prox.min - p;
+    const pct = Math.round((p - atual.min) / (prox.min - atual.min) * 100);
+    return { nivel: atual.nome, proximo: prox.nome, faltam: faltam, pct: Math.max(0, Math.min(100, pct)) };
+  }
+  // busca cliente por telefone OU cpf (ignora pontuação) OU nome
+  function buscarCliente(termo) {
+    if (!termo) return null;
+    const t = String(termo).trim().toLowerCase(), dig = t.replace(/\D/g, "");
+    return table("clientes").find(function (c) {
+      const tel = (c.telefone || "").replace(/\D/g, ""), cpf = (c.cpf || "").replace(/\D/g, "");
+      return (dig.length >= 4 && (tel.indexOf(dig) >= 0 || cpf.indexOf(dig) >= 0)) || (c.nome || "").toLowerCase().indexOf(t) >= 0;
+    }) || null;
+  }
+  // gera a mensagem de "quase lá" a partir dos modelos da config
+  function mensagemNudge(cliente, tipo) {
+    const fid = db.config.fidelidade || {}, meta = fid.selosMeta || 10;
+    const prog = progressoNivel(cliente);
+    let tpl;
+    if (tipo === "nivel") tpl = fid.msgQuaseNivel;
+    else if (tipo === "aniversario") tpl = fid.msgAniversario;
+    else if (tipo === "reativacao") tpl = fid.msgReativacao;
+    else tpl = fid.msgQuaseBrinde;
+    const faltam = tipo === "nivel" ? prog.faltam : (meta - (cliente.selos || 0));
+    return (tpl || "")
+      .replace(/{{nome}}/g, (cliente.nome || "").split(" ")[0])
+      .replace(/{{faltam}}/g, faltam)
+      .replace(/{{nivel}}/g, prog.proximo || prog.nivel)
+      .replace(/{{selos}}/g, cliente.selos || 0)
+      .replace(/{{recompensa}}/g, fid.brindeNome || "um mimo");
+  }
   function custoCobertura(a) {
     return (a.consome || []).reduce(function (s, c) { const it = find("itens", c.itemId); return s + (it ? custoQuantidade(c.qtd, it.unidade, it.custoUnit, it.unidade) : 0); }, 0);
   }
@@ -615,13 +701,35 @@ window.Cellos = (function () {
     total = Math.round(total * 100) / 100;
     custoTotal = Math.round(custoTotal * 100) / 100;
 
-    // cliente + resgate de cashback
+    // cliente + resgate (cashback | prêmio do catálogo | brinde do cartão de selos)
+    const fid = db.config.fidelidade || {};
     let cliente = payload.clienteId ? find("clientes", payload.clienteId) : null;
-    let descontoResgate = 0;
-    if (cliente && payload.resgate && payload.resgate.cashback) {
-      descontoResgate = Math.min(Number(payload.resgate.cashback) || 0, cliente.cashback || 0, total);
-      descontoResgate = Math.round(descontoResgate * 100) / 100;
+    let descontoResgate = 0, resgateDesc = null, premioResg = null, cashbackUsado = 0, usouBrinde = false;
+    if (cliente && payload.resgate) {
+      const r = payload.resgate;
+      if (r.cashback) {
+        cashbackUsado = Math.min(Number(r.cashback) || 0, cliente.cashback || 0, total);
+        cashbackUsado = Math.round(cashbackUsado * 100) / 100;
+        if (cashbackUsado > 0) { descontoResgate += cashbackUsado; resgateDesc = "Cashback (R$ " + cashbackUsado.toFixed(2) + ")"; }
+      }
+      if (r.brinde && (cliente.brindesDisponiveis || 0) > 0) {
+        const bp = find("produtos", "pr_casq_1");
+        descontoResgate += Math.min(bp ? bp.precoVenda : 0, total - descontoResgate);
+        usouBrinde = true; resgateDesc = (resgateDesc ? resgateDesc + " + " : "") + (fid.brindeNome || "Brinde do cartão");
+      }
+      if (r.premioId) {
+        premioResg = find("premios", r.premioId);
+        if (premioResg && (cliente.pontos || 0) >= premioResg.custoPontos) {
+          let pd = 0;
+          if (premioResg.tipo === "desconto") pd = premioResg.valor || 0;
+          else if (premioResg.tipo === "produto") { const pp = find("produtos", premioResg.produtoId); pd = pp ? pp.precoVenda : 0; }
+          else if (premioResg.tipo === "cobertura") pd = 3;
+          descontoResgate += Math.min(pd, total - descontoResgate);
+          resgateDesc = (resgateDesc ? resgateDesc + " + " : "") + premioResg.nome;
+        } else { premioResg = null; }
+      }
     }
+    descontoResgate = Math.round(Math.min(descontoResgate, total) * 100) / 100;
     const totalPago = Math.round((total - descontoResgate) * 100) / 100;
 
     const numero = db.config.proximoPedido || (table("vendas").length + 1);
@@ -631,7 +739,7 @@ window.Cellos = (function () {
     const troco = (valorRecebido != null) ? Math.round((valorRecebido - totalPago) * 100) / 100 : null;
     const venda = {
       id: uid("vnd"), numero: numero, datetime: nowISO(), operador: payload.operador || "—",
-      itens: linhas, total: totalPago, totalBruto: total, descontoResgate: descontoResgate,
+      itens: linhas, total: totalPago, totalBruto: total, descontoResgate: descontoResgate, resgate: resgateDesc,
       custoTotal: custoTotal, lucro: Math.round((totalPago - custoTotal) * 100) / 100,
       formaPagamento: payload.formaPagamento || "Dinheiro", valorRecebido: valorRecebido, troco: troco,
       clienteId: cliente ? cliente.id : null
@@ -650,16 +758,23 @@ window.Cellos = (function () {
       }
       (l.adicionais || []).forEach(function (aid) { const a = find("coberturas", aid); if (a && a.consomeEstoque) { (a.consome || []).forEach(function (c) { _darBaixa(c.itemId, c.qtd * l.qtd, venda, "Adicional " + a.nome); }); } });
     });
-    // fidelidade: pontos, cashback, estatísticas do cliente
+    // fidelidade: resgates aplicados, colheres, cartão de selos, estatísticas
     if (cliente) {
-      cliente.cashback = Math.round(((cliente.cashback || 0) - descontoResgate) * 100) / 100;
-      const pontosGanhos = Math.floor(totalPago);
+      if (cashbackUsado) cliente.cashback = Math.round(((cliente.cashback || 0) - cashbackUsado) * 100) / 100;
+      if (premioResg) cliente.pontos = Math.max(0, (cliente.pontos || 0) - premioResg.custoPontos);
+      if (usouBrinde) cliente.brindesDisponiveis = Math.max(0, (cliente.brindesDisponiveis || 0) - 1);
+      const mult = (fid.diaEmDobro != null && new Date().getDay() === fid.diaEmDobro) ? 2 : 1;
+      const pontosGanhos = Math.floor(totalPago * (fid.pontosPorReal || 1)) * mult;
       cliente.pontos = (cliente.pontos || 0) + pontosGanhos;
+      const meta = fid.selosMeta || 10;
+      let brindesGanhos = 0;
+      cliente.selos = (cliente.selos || 0) + 1;
+      while (cliente.selos >= meta) { cliente.selos -= meta; cliente.brindesDisponiveis = (cliente.brindesDisponiveis || 0) + 1; brindesGanhos++; }
       cliente.visitas = (cliente.visitas || 0) + 1;
       cliente.totalGasto = Math.round(((cliente.totalGasto || 0) + totalPago) * 100) / 100;
       cliente.ultimaCompra = todayISO();
       cliente.nivel = nivelCliente(cliente.pontos);
-      venda.pontosGanhos = pontosGanhos;
+      venda.pontosGanhos = pontosGanhos; venda.pontosDobro = (mult === 2); venda.brindesGanhos = brindesGanhos; venda.selosCliente = cliente.selos;
     }
     save();
     return venda;
@@ -965,6 +1080,41 @@ window.Cellos = (function () {
     clientesEmRisco: function () {
       const self = this;
       return table("clientes").filter(function (c) { const s = self.segmentoCliente(c).segmento; return s === "Em risco" || s === "Sumido"; });
+    },
+    // "Quase lá": clientes perto de uma recompensa (selos) ou do próximo nível, + quem já tem brinde
+    quaseGanhando: function (opts) {
+      opts = opts || {};
+      const meta = (db.config.fidelidade || {}).selosMeta || 10;
+      const margemSelos = opts.margemSelos || 2;     // a até 2 selos do brinde
+      const margemPontos = opts.margemPontos || 80;  // a até 80 colheres do próximo nível
+      const selos = [], nivel = [], comBrinde = [];
+      table("clientes").forEach(function (c) {
+        const faltaSelo = meta - (c.selos || 0);
+        if ((c.brindesDisponiveis || 0) > 0) comBrinde.push(c);
+        if (faltaSelo > 0 && faltaSelo <= margemSelos) selos.push({ cliente: c, faltam: faltaSelo });
+        const pr = progressoNivel(c);
+        if (pr.proximo && pr.faltam > 0 && pr.faltam <= margemPontos) nivel.push({ cliente: c, faltam: pr.faltam, proximo: pr.proximo });
+      });
+      selos.sort(function (a, b) { return a.faltam - b.faltam; });
+      nivel.sort(function (a, b) { return a.faltam - b.faltam; });
+      return { selos: selos, nivel: nivel, comBrinde: comBrinde };
+    },
+    fidelidadeKPIs: function (dias) {
+      const vs = this.vendasNoPeriodo(dias || 30);
+      const comCli = vs.filter(function (v) { return v.clienteId; });
+      const fatTotal = vs.reduce(function (s, v) { return s + v.total; }, 0);
+      const fatMembros = comCli.reduce(function (s, v) { return s + v.total; }, 0);
+      const clientes = table("clientes");
+      const recorrentes = clientes.filter(function (c) { return (c.visitas || 0) > 1; }).length;
+      return {
+        membros: clientes.length,
+        pctVendasMembros: fatTotal ? fatMembros / fatTotal * 100 : 0,
+        ticketMembro: comCli.length ? fatMembros / comCli.length : 0,
+        taxaRetorno: clientes.length ? recorrentes / clientes.length * 100 : 0,
+        colheresCirculacao: clientes.reduce(function (s, c) { return s + (c.pontos || 0); }, 0),
+        brindesPendentes: clientes.reduce(function (s, c) { return s + (c.brindesDisponiveis || 0); }, 0),
+        resgatesPeriodo: vs.filter(function (v) { return v.resgate; }).length
+      };
     }
   };
 
@@ -1414,7 +1564,8 @@ window.Cellos = (function () {
     load: load, save: save, reset: reset, get: get,
     table: table, find: find, insert: insert, update: update, remove: remove,
     registrarVenda: registrarVenda, movimentar: movimentar, receberCompra: receberCompra, registrarLimpeza: registrarLimpeza,
-    registrarPerda: registrarPerda, abrirCaixa: abrirCaixa, caixaAberto: caixaAberto, registrarSangria: registrarSangria, registrarSuprimento: registrarSuprimento, fecharCaixa: fecharCaixa, nivelCliente: nivelCliente,
+    registrarPerda: registrarPerda, abrirCaixa: abrirCaixa, caixaAberto: caixaAberto, registrarSangria: registrarSangria, registrarSuprimento: registrarSuprimento, fecharCaixa: fecharCaixa,
+    nivelCliente: nivelCliente, niveisFidelidade: niveisFidelidade, progressoNivel: progressoNivel, buscarCliente: buscarCliente, mensagemNudge: mensagemNudge,
     custoPorBola: custoPorBola, custoLinha: custoLinha, custoIngrediente: custoIngrediente, custoReceita: custoReceita,
     custoMedioProduto: custoMedioProduto, custoQuantidade: custoQuantidade, fatorUnidade: fatorUnidade, UNIDADES: UNIDADES,
     analytics: analytics,
