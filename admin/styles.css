@@ -76,6 +76,11 @@ button{font-family:inherit}
 .nav-item .nav-ic{display:flex;opacity:.85}
 .nav-item:hover{background:rgba(255,255,255,.06);color:#fff}
 .nav-item.active{background:var(--accent);color:#fff}
+.nav-badge{margin-left:auto;background:var(--danger);color:#fff;font-size:.64rem;font-weight:700;min-width:18px;height:18px;padding:0 5px;border-radius:9px;display:none;align-items:center;justify-content:center;line-height:1}
+.alert-banner{display:flex;align-items:center;gap:14px;background:var(--warn-soft);border:1px solid var(--warn);border-radius:12px;padding:14px 18px;margin-bottom:18px}
+.alert-banner .ab-ic{color:var(--warn);flex:none}
+.alert-banner .ab-txt{flex:1;font-size:.92rem;color:var(--ink)}
+.alert-banner .ab-txt b{color:var(--warn)}
 .nav-item.active .nav-ic{opacity:1}
 .sidebar-foot{padding:14px;border-top:1px solid rgba(255,255,255,.08);display:flex;flex-direction:column;gap:8px}
 .sidebar-foot .sf-link{display:flex;align-items:center;gap:9px;font-size:.82rem;color:#b9a98f;padding:7px 10px;border-radius:8px;cursor:pointer}

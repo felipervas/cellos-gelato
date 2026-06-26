@@ -1,250 +1,208 @@
 /* ============================================================
-   Módulo: PRODUÇÃO  (agenda de produção de gelato/sorbet — quadro kanban)
-   Segue o padrão de produtos.js (módulo de referência).
+   Módulo: PRODUÇÃO  (agenda de gelato/sorbet — fácil para o operador)
+   - Agendar é simples: escolhe a RECEITA, a data e o responsável (sem quantidade).
+   - Cada cartão tem "Ver receita" (ingredientes + modo de preparo) para o operador seguir.
+   - Concluir registra QUEM finalizou e QUANDO, e o lote vai para o HISTÓRICO.
+   - Excluir não apaga de vez: vai para a lixeira do histórico (quem excluiu/quando) e dá para restaurar.
    ============================================================ */
 (function () {
   var C = window.Cellos;
   var ui = C.ui, h = ui.h, fmt = C.fmt;
 
-  // pequeno bloco de estilo (apenas o necessário p/ o quadro kanban)
+  var state = { aba: "quadro" };
+  function root() { return document.getElementById("content"); }
+  function operadores() { return (C.get().config.operadores || []).slice(); }
+  function receitaDe(p) { return C.find("receitas", p.receitaId); }
+  function ehAtrasada(p) { return (p.status === "agendada" || p.status === "em_producao") && p.prazo && C.daysBetween(C.todayISO(), p.prazo) < 0; }
+
   function ensureStyles() {
     if (document.getElementById("producao-styles")) return;
     var css = ""
-      + ".prod-board{align-items:start}"
-      + ".prod-col{background:var(--surface-2);border:1px solid var(--line);border-radius:var(--radius);padding:14px;display:flex;flex-direction:column;gap:12px}"
-      + ".prod-col-head{display:flex;align-items:center;justify-content:space-between;gap:8px}"
-      + ".prod-col-title{font-size:.82rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-2);display:flex;align-items:center;gap:7px}"
+      + ".prod-board{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}"
+      + ".prod-col{background:var(--surface-2);border:1px solid var(--line);border-radius:var(--radius);padding:14px;display:flex;flex-direction:column;gap:12px;min-height:120px}"
+      + ".prod-col-head{display:flex;align-items:center;gap:8px;font-size:.74rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-2)}"
       + ".prod-col-dot{width:9px;height:9px;border-radius:50%;flex:none}"
-      + ".prod-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-sm);box-shadow:var(--shadow-sm);padding:13px 14px;display:flex;flex-direction:column;gap:9px}"
+      + ".prod-col-count{margin-left:auto;background:var(--surface);border:1px solid var(--line);border-radius:20px;min-width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:.72rem;color:var(--muted)}"
+      + ".prod-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-sm);box-shadow:var(--shadow-sm);padding:14px;display:flex;flex-direction:column;gap:7px}"
       + ".prod-card.is-late{border-color:var(--danger);box-shadow:0 0 0 1px var(--danger-soft)}"
-      + ".prod-card-name{font-weight:600;font-size:.95rem;color:var(--ink);line-height:1.25}"
-      + ".prod-card-meta{display:flex;flex-direction:column;gap:4px;font-size:.8rem;color:var(--ink-2)}"
-      + ".prod-card-meta .lbl{color:var(--muted)}"
-      + ".prod-card-obs{font-size:.78rem;color:var(--muted);font-style:italic;border-top:1px dashed var(--line);padding-top:8px}"
-      + ".prod-card-foot{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:2px}"
-      + ".prod-card-foot .spacer{flex:1}"
-      + ".prod-qty{font-family:var(--serif);font-weight:600;font-size:1.05rem;color:var(--accent)}"
-      + ".prod-col-empty{font-size:.82rem;color:var(--muted);font-style:italic;text-align:center;padding:18px 6px}";
-    var st = h("style", { id: "producao-styles", html: css });
-    document.head.appendChild(st);
+      + ".prod-card-name{font-family:var(--serif);font-weight:600;font-size:1.15rem;color:var(--ink);line-height:1.2}"
+      + ".prod-card-acts{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:6px;padding-top:10px;border-top:1px solid var(--line)}"
+      + ".prod-empty{color:var(--muted);font-style:italic;font-size:.86rem;padding:18px 6px;text-align:center}";
+    var s = document.createElement("style"); s.id = "producao-styles"; s.textContent = css; document.head.appendChild(s);
   }
 
-  var COLUNAS = [
-    { status: "agendada", titulo: "Agendada", cor: "var(--info)" },
-    { status: "em_producao", titulo: "Em produção", cor: "var(--warn)" },
-    { status: "concluida", titulo: "Concluída", cor: "var(--ok)" }
-  ];
-
-  // produção atrasada: não concluída E prazo já passou
-  function atrasada(p) {
-    if (p.status === "concluida" || !p.prazo) return false;
-    return C.daysBetween(C.todayISO(), p.prazo) < 0;
+  /* ---------- VER RECEITA (operador-friendly: ingredientes + preparo, sem custo) ---------- */
+  function verReceita(p) {
+    var r = receitaDe(p);
+    if (!r) { ui.toast("Receita não encontrada para esta produção.", "warn"); return; }
+    var body = h("div", {});
+    body.appendChild(h("div", { class: "small muted mb-2", text: "Rende " + fmt.num(r.rendimento, 1) + " " + (r.rendimentoUnidade || "") + " · cerca de " + fmt.int(r.rendimentoBolas) + " bolas" }));
+    var cols = [
+      { key: "nome", label: "Ingrediente", render: function (i) { return h("span", { class: "cell-strong", text: i.tipo === "insumo" ? ((C.find("itens", i.itemId) || {}).nome || "—") : (i.nome || "—") }); } },
+      { key: "qtd", label: "Quantidade", align: "right", render: function (i) { return fmt.num(i.qtd, 3) + " " + (i.unidade || ""); } }
+    ];
+    body.appendChild(ui.table(cols, r.ingredientes || [], { dense: true, emptyMsg: "Sem ingredientes cadastrados." }));
+    if (r.modoPreparo) {
+      body.appendChild(h("h4", { class: "mt-3", style: { fontFamily: "var(--serif)", marginBottom: "6px" }, text: "Modo de preparo" }));
+      body.appendChild(h("p", { style: { whiteSpace: "pre-wrap", color: "var(--ink-2)", lineHeight: "1.75", fontSize: ".95rem" }, text: r.modoPreparo }));
+    }
+    if (r.obs) { body.appendChild(h("p", { class: "small muted mt-2", style: { whiteSpace: "pre-wrap" }, text: "Observações da receita: " + r.obs })); }
+    if (p.obs) { body.appendChild(h("div", { class: "alert-banner", style: { marginTop: "14px", marginBottom: "0" } }, h("span", { class: "ab-ic", html: C.icon("alert", 18) }), h("div", { class: "ab-txt small", text: "Nota da produção: " + p.obs }))); }
+    ui.modal({ title: "Receita · " + r.nome, body: body, size: "md" });
   }
 
-  function rerender() {
-    render(document.getElementById("content"));
-  }
-
-  function openForm(item) {
-    var editing = !!item;
+  /* ---------- Agendar / Editar ---------- */
+  function openForm(p) {
+    var editing = !!p;
     var receitas = C.table("receitas");
-    var operadores = C.get().config.operadores || [];
-
-    // opções de produto a partir das receitas (+ texto livre do registro em edição)
-    var nomesReceitas = receitas.map(function (r) { return r.nome; });
-    var produtoOpts = nomesReceitas.slice();
-    if (editing && item.produto && produtoOpts.indexOf(item.produto) < 0) {
-      produtoOpts.unshift(item.produto);
-    }
-
-    var temReceitas = produtoOpts.length > 0;
-
-    var receitaOpts = [{ value: "", label: "— sem receita vinculada —" }].concat(
-      receitas.map(function (r) { return { value: r.id, label: r.nome }; })
-    );
-
-    var fields = [];
-    if (temReceitas) {
-      fields.push({ name: "produto", label: "Produto", type: "select", options: produtoOpts, required: true, full: true });
-    } else {
-      fields.push({ name: "produto", label: "Produto", type: "text", required: true, full: true, placeholder: "Ex.: Gelato de Pistache" });
-    }
-    fields.push({ name: "receitaId", label: "Receita vinculada (opcional)", type: "select", options: receitaOpts });
-    fields.push({ name: "qtdPlanejada", label: "Quantidade planejada", type: "number", step: "0.5", min: "0", required: true });
-    fields.push({ name: "unidade", label: "Unidade", type: "text", placeholder: "kg" });
-    fields.push({ name: "dataAgendada", label: "Data agendada", type: "date", required: true });
-    fields.push({ name: "prazo", label: "Pronto até (prazo)", type: "date" });
-    fields.push({
-      name: "responsavel", label: "Responsável", type: "select",
-      options: [{ value: "", label: "— a definir —" }].concat(operadores.map(function (o) { return { value: o, label: o }; }))
-    });
-    fields.push({
-      name: "status", label: "Status", type: "select",
-      options: [
-        { value: "agendada", label: "Agendada" },
-        { value: "em_producao", label: "Em produção" },
-        { value: "concluida", label: "Concluída" }
-      ]
-    });
-    fields.push({ name: "obs", label: "Observações", type: "textarea", full: true, placeholder: "Notas do lote, conferências, etc." });
-
-    var valores = item || {
-      unidade: "kg",
-      dataAgendada: C.todayISO(),
-      prazo: C.daysFromNow(1),
-      status: "agendada"
-    };
-
+    if (!receitas.length) { ui.toast("Cadastre uma receita antes de agendar a produção.", "warn"); return; }
     ui.formModal({
-      title: editing ? "Editar produção" : "Agendar produção",
-      size: "lg",
-      values: valores,
-      fields: fields,
-      validate: function (v) {
-        if (v.qtdPlanejada != null && v.qtdPlanejada <= 0) return "A quantidade planejada deve ser maior que zero.";
-        if (v.dataAgendada && v.prazo && C.daysBetween(v.dataAgendada, v.prazo) < 0) return "O prazo não pode ser antes da data agendada.";
-        return null;
-      }
+      title: editing ? "Editar produção" : "Agendar produção", size: "md",
+      values: p || { dataAgendada: C.todayISO(), prazo: C.daysFromNow(1), responsavel: operadores()[0] || "" },
+      fields: [
+        { name: "receitaId", label: "Receita a produzir", type: "select", options: receitas.map(function (r) { return { value: r.id, label: r.nome }; }), required: true, full: true },
+        { name: "dataAgendada", label: "Agendar para", type: "date" },
+        { name: "prazo", label: "Pronto até", type: "date" },
+        { name: "responsavel", label: "Responsável", type: "select", options: operadores() },
+        { name: "obs", label: "Observações (opcional)", type: "textarea", rows: 2, full: true, placeholder: "Ex.: reposição da câmara, lote dobrado..." }
+      ]
     }).then(function (v) {
       if (!v) return;
-      // normaliza
-      if (!v.unidade) v.unidade = "kg";
-      if (!v.status) v.status = "agendada";
-      if (editing) {
-        C.update("producao", item.id, v);
-        ui.toast("Produção atualizada.", "ok");
-      } else {
-        C.insert("producao", v);
-        ui.toast("Produção agendada.", "ok");
-      }
-      rerender();
+      var r = C.find("receitas", v.receitaId);
+      var patch = { receitaId: v.receitaId, produto: r ? r.nome : "", dataAgendada: v.dataAgendada || C.todayISO(), prazo: v.prazo || null, responsavel: v.responsavel, obs: v.obs || "" };
+      if (editing) { C.update("producao", p.id, patch); ui.toast("Produção atualizada.", "ok"); }
+      else { patch.status = "agendada"; patch.criadoEm = C.nowISO(); C.insert("producao", patch); ui.toast("Produção agendada.", "ok"); }
+      render(root());
     });
   }
 
-  function moverStatus(item, novoStatus, msg) {
-    C.update("producao", item.id, { status: novoStatus });
-    ui.toast(msg, "ok");
-    rerender();
+  /* ---------- Ações de fluxo ---------- */
+  function iniciar(p) {
+    var quem = (C.currentUser() || {}).nome || p.responsavel || "—";
+    C.update("producao", p.id, { status: "em_producao", iniciadoPor: quem, iniciadoEm: C.nowISO() });
+    ui.toast("Produção iniciada.", "ok"); render(root());
   }
-
-  function excluir(item) {
-    ui.confirm("Excluir a produção de \"" + item.produto + "\"?", { danger: true, okLabel: "Excluir" }).then(function (ok) {
-      if (!ok) return;
-      C.remove("producao", item.id);
-      ui.toast("Produção excluída.", "ok");
-      rerender();
+  function concluir(p) {
+    var sel = h("select", { style: { width: "100%", padding: "9px 11px", borderRadius: "9px", border: "1px solid var(--line-strong)", fontFamily: "inherit" } });
+    operadores().forEach(function (o) { var op = h("option", { value: o, text: o }); if (o === p.responsavel) op.selected = true; sel.appendChild(op); });
+    var body = h("div", {}, h("p", { class: "small muted mb-2", text: "Confirma que a produção de “" + p.produto + "” foi concluída? Ela vai para o histórico." }), h("label", { class: "small muted", text: "Quem finalizou?" }), sel);
+    var ok = ui.button("Concluir", { variant: "primary", icon: "check" });
+    var cancel = ui.button("Cancelar", { variant: "ghost" });
+    var m = ui.modal({ title: "Concluir produção", body: body, actions: [cancel, ok], size: "sm" });
+    cancel.addEventListener("click", function () { m.close(); });
+    ok.addEventListener("click", function () { C.update("producao", p.id, { status: "concluida", concluidoPor: sel.value, concluidoEm: C.nowISO() }); m.close(); ui.toast("Produção concluída e enviada ao histórico.", "ok"); render(root()); });
+  }
+  function excluir(p) {
+    ui.confirm("Excluir a produção de “" + p.produto + "”? Ela vai para a lixeira do histórico (com quem excluiu) e pode ser restaurada.", { danger: true, okLabel: "Excluir" }).then(function (okc) {
+      if (!okc) return;
+      var quem = (C.currentUser() || {}).nome || "—";
+      C.update("producao", p.id, { status: "excluida", excluidoPor: quem, excluidoEm: C.nowISO(), statusAnterior: p.status });
+      ui.toast("Produção movida para a lixeira do histórico.", "ok"); render(root());
     });
   }
-
-  function metaLinha(label, valor) {
-    return h("div", {}, h("span", { class: "lbl", text: label + " " }), valor);
+  function restaurar(p) {
+    C.update("producao", p.id, { status: p.statusAnterior || "agendada", excluidoPor: null, excluidoEm: null });
+    ui.toast("Produção restaurada para o quadro.", "ok"); render(root());
   }
 
-  function card(item) {
-    var late = atrasada(item);
-    var box = h("div", { class: "prod-card" + (late ? " is-late" : "") });
+  /* ---------- Cartão do quadro ---------- */
+  function card(p) {
+    var r = receitaDe(p), atrasada = ehAtrasada(p);
+    var el = h("div", { class: "prod-card" + (atrasada ? " is-late" : "") });
+    el.appendChild(h("div", { class: "prod-card-name", text: p.produto }));
+    if (r) el.appendChild(h("div", { class: "small muted", text: "Rende ~" + fmt.num(r.rendimento, 1) + " " + (r.rendimentoUnidade || "") }));
+    el.appendChild(h("div", { class: "small muted", text: "Responsável: " + (p.responsavel || "—") }));
+    el.appendChild(h("div", { class: "small muted" }, "Pronto até: ", atrasada ? ui.badge(fmt.date(p.prazo) + " · atrasada", "danger") : h("b", { text: fmt.date(p.prazo) })));
+    if (p.obs) el.appendChild(h("p", { class: "small", style: { fontStyle: "italic", color: "var(--muted)" }, text: p.obs }));
 
-    box.appendChild(h("div", { class: "prod-card-name", text: item.produto || "(sem nome)" }));
-
-    var meta = h("div", { class: "prod-card-meta" });
-    meta.appendChild(h("div", {},
-      h("span", { class: "prod-qty", text: fmt.num(item.qtdPlanejada, 2) + " " + (item.unidade || "kg") })
-    ));
-    if (item.responsavel) meta.appendChild(metaLinha("Responsável:", h("span", { text: item.responsavel })));
-    meta.appendChild(metaLinha("Agendada:", h("span", { text: fmt.date(item.dataAgendada) })));
-
-    // prazo (badge danger se atrasada e não concluída)
-    var prazoVal;
-    if (late) {
-      prazoVal = ui.badge(fmt.date(item.prazo) + " — atrasada", "danger");
-    } else {
-      prazoVal = h("span", { text: fmt.date(item.prazo) });
-    }
-    meta.appendChild(metaLinha("Pronto até:", prazoVal));
-    box.appendChild(meta);
-
-    if (item.obs) box.appendChild(h("div", { class: "prod-card-obs", text: item.obs }));
-
-    // botões de ação
-    var foot = h("div", { class: "prod-card-foot" });
-    if (item.status === "agendada") {
-      var iniciar = ui.button("Iniciar", { variant: "soft", icon: "fire" });
-      iniciar.classList.add("btn-sm");
-      iniciar.addEventListener("click", function () { moverStatus(item, "em_producao", "Produção iniciada."); });
-      foot.appendChild(iniciar);
-    } else if (item.status === "em_producao") {
-      var concluir = ui.button("Concluir", { variant: "primary", icon: "check" });
-      concluir.classList.add("btn-sm");
-      concluir.addEventListener("click", function () { moverStatus(item, "concluida", "Produção concluída."); });
-      foot.appendChild(concluir);
-    }
-    foot.appendChild(h("span", { class: "spacer" }));
-    foot.appendChild(ui.iconButton("edit", function () { openForm(item); }, "Editar"));
-    foot.appendChild(ui.iconButton("trash", function () { excluir(item); }, "Excluir"));
-    box.appendChild(foot);
-
-    return box;
+    var ver = ui.button("Ver receita", { variant: "soft", icon: "receitas", onClick: function () { verReceita(p); } }); ver.classList.add("btn-sm");
+    var right = h("div", { class: "flex", style: { gap: "6px", alignItems: "center" } });
+    if (p.status === "agendada") { var ib = ui.button("Iniciar", { variant: "primary", icon: "fire", onClick: function () { iniciar(p); } }); ib.classList.add("btn-sm"); right.appendChild(ib); }
+    if (p.status === "em_producao") { var cb = ui.button("Concluir", { variant: "primary", icon: "check", onClick: function () { concluir(p); } }); cb.classList.add("btn-sm"); right.appendChild(cb); }
+    right.appendChild(ui.iconButton("edit", function () { openForm(p); }, "Editar"));
+    right.appendChild(ui.iconButton("trash", function () { excluir(p); }, "Excluir"));
+    el.appendChild(h("div", { class: "prod-card-acts" }, ver, right));
+    return el;
   }
 
-  function coluna(def, registros) {
-    var lista = registros.filter(function (p) { return p.status === def.status; });
-    // ordena por prazo (mais próximo primeiro), atrasadas no topo
-    lista.sort(function (a, b) {
-      var pa = a.prazo || a.dataAgendada || "9999-12-31";
-      var pb = b.prazo || b.dataAgendada || "9999-12-31";
-      return pa < pb ? -1 : (pa > pb ? 1 : 0);
-    });
-
-    var head = h("div", { class: "prod-col-head" },
-      h("div", { class: "prod-col-title" },
-        h("span", { class: "prod-col-dot", style: { background: def.cor } }),
-        def.titulo
-      ),
-      ui.badge(fmt.int(lista.length), "neutral")
-    );
-
-    var col = h("div", { class: "prod-col" }, head);
-    if (!lista.length) {
-      col.appendChild(h("div", { class: "prod-col-empty", text: "Nenhuma produção aqui." }));
-    } else {
-      lista.forEach(function (p) { col.appendChild(card(p)); });
-    }
+  function coluna(titulo, cor, lista) {
+    var col = h("div", { class: "prod-col" },
+      h("div", { class: "prod-col-head" }, h("span", { class: "prod-col-dot", style: { background: cor } }), titulo, h("span", { class: "prod-col-count", text: lista.length })));
+    if (!lista.length) col.appendChild(h("div", { class: "prod-empty", text: "Nada por aqui." }));
+    lista.forEach(function (p) { col.appendChild(card(p)); });
     return col;
   }
 
-  function render(root) {
-    ui.clear(root);
+  /* ---------- KPIs ---------- */
+  function renderKpis(host) {
+    var prod = C.table("producao");
+    var ag = prod.filter(function (p) { return p.status === "agendada"; });
+    var emp = prod.filter(function (p) { return p.status === "em_producao"; });
+    var conc = prod.filter(function (p) { return p.status === "concluida"; });
+    var atras = prod.filter(ehAtrasada);
+    host.appendChild(h("div", { class: "grid grid-4 mb-2" },
+      ui.kpi({ label: "Agendadas", value: fmt.int(ag.length), icon: "clock", accent: "accent" }),
+      ui.kpi({ label: "Em produção", value: fmt.int(emp.length), icon: "fire", accent: "warn" }),
+      ui.kpi({ label: "Concluídas", value: fmt.int(conc.length), icon: "check", accent: "success" }),
+      ui.kpi({ label: "Atrasadas", value: fmt.int(atras.length), icon: "alert", accent: atras.length ? "danger" : "success", foot: atras.length ? "Passou do prazo" : "Tudo em dia" })
+    ));
+  }
+
+  /* ---------- Histórico ---------- */
+  function renderHistorico(host) {
+    var prod = C.table("producao");
+    var concluidas = prod.filter(function (p) { return p.status === "concluida"; }).sort(function (a, b) { return new Date(b.concluidoEm || b.prazo) - new Date(a.concluidoEm || a.prazo); });
+    var excluidas = prod.filter(function (p) { return p.status === "excluida"; }).sort(function (a, b) { return new Date(b.excluidoEm || 0) - new Date(a.excluidoEm || 0); });
+
+    var colsConc = [
+      { key: "produto", label: "Receita", render: function (p) { return h("span", { class: "cell-strong", text: p.produto }); } },
+      { key: "responsavel", label: "Responsável", render: function (p) { return p.responsavel || "—"; } },
+      { key: "concluidoPor", label: "Quem finalizou", render: function (p) { return h("span", { class: "cell-strong", text: p.concluidoPor || p.responsavel || "—" }); } },
+      { key: "dataAgendada", label: "Agendada", render: function (p) { return fmt.date(p.dataAgendada); } },
+      { key: "concluidoEm", label: "Concluída em", render: function (p) { return p.concluidoEm ? fmt.datetime(p.concluidoEm) : fmt.date(p.prazo); } }
+    ];
+    host.appendChild(ui.card("Concluídas — " + concluidas.length + " lote(s)",
+      ui.table(colsConc, concluidas, { dense: true, emptyMsg: "Nenhuma produção concluída ainda.", actions: function (p) { return [ui.iconButton("receitas", function () { verReceita(p); }, "Ver receita")]; } })));
+
+    var colsExc = [
+      { key: "produto", label: "Receita", render: function (p) { return h("span", { class: "cell-strong", text: p.produto }); } },
+      { key: "excluidoPor", label: "Quem excluiu", render: function (p) { return h("span", { class: "text-danger", text: p.excluidoPor || "—" }); } },
+      { key: "excluidoEm", label: "Excluída em", render: function (p) { return p.excluidoEm ? fmt.datetime(p.excluidoEm) : "—"; } },
+      { key: "obs", label: "Motivo / nota", render: function (p) { return p.obs || '<span class="cell-muted">—</span>'; } }
+    ];
+    var cardExc = ui.card("Lixeira — " + excluidas.length + " excluída(s)",
+      ui.table(colsExc, excluidas, { dense: true, emptyMsg: "Nada na lixeira.", actions: function (p) { var b = ui.button("Restaurar", { variant: "ghost", onClick: function () { restaurar(p); } }); b.classList.add("btn-sm"); return [b]; } }));
+    cardExc.style.marginTop = "16px";
+    host.appendChild(cardExc);
+  }
+
+  /* ---------- RENDER ---------- */
+  function render(rootEl) {
     ensureStyles();
+    ui.clear(rootEl);
+    rootEl.appendChild(ui.pageHeader("Produção", "Agenda de gelato e sorbet — receita à mão para o operador.",
+      [ui.button("Agendar produção", { icon: "plus", onClick: function () { openForm(null); } })]));
 
-    root.appendChild(ui.pageHeader(
-      "Produção",
-      "Agenda de produção de gelato e sorbet — acompanhe cada lote no quadro.",
-      [ui.button("Agendar produção", { icon: "plus", onClick: function () { openForm(null); } })]
+    renderKpis(rootEl);
+
+    var abas = [{ id: "quadro", label: "Quadro" }, { id: "historico", label: "Histórico" }];
+    var chips = h("div", { class: "chips mb-2" });
+    abas.forEach(function (a) {
+      var chip = h("button", { class: "chip" + (state.aba === a.id ? " active" : ""), type: "button", text: a.label });
+      chip.addEventListener("click", function () { state.aba = a.id; render(root()); });
+      chips.appendChild(chip);
+    });
+    rootEl.appendChild(chips);
+
+    var host = h("div", {});
+    rootEl.appendChild(host);
+    if (state.aba === "historico") { renderHistorico(host); return; }
+
+    var prod = C.table("producao");
+    host.appendChild(h("div", { class: "prod-board" },
+      coluna("Agendada", "var(--accent)", prod.filter(function (p) { return p.status === "agendada"; })),
+      coluna("Em produção", "var(--warn)", prod.filter(function (p) { return p.status === "em_producao"; }))
     ));
-
-    var registros = C.table("producao");
-
-    // KPIs
-    var agendadas = registros.filter(function (p) { return p.status === "agendada"; }).length;
-    var emProducao = registros.filter(function (p) { return p.status === "em_producao"; }).length;
-    var concluidas = registros.filter(function (p) { return p.status === "concluida"; }).length;
-    var atrasadas = registros.filter(atrasada).length;
-
-    root.appendChild(h("div", { class: "grid grid-4 mb-2" },
-      ui.kpi({ label: "Agendadas", value: fmt.int(agendadas), icon: "clock", accent: "info" }),
-      ui.kpi({ label: "Em produção", value: fmt.int(emProducao), icon: "fire", accent: "warn" }),
-      ui.kpi({ label: "Concluídas", value: fmt.int(concluidas), icon: "check", accent: "success" }),
-      ui.kpi({ label: "Atrasadas", value: fmt.int(atrasadas), icon: "alert", accent: "danger", foot: atrasadas ? "Prazo vencido sem concluir" : "Tudo em dia" })
-    ));
-
-    // quadro kanban
-    var board = h("div", { class: "grid grid-3 prod-board" });
-    COLUNAS.forEach(function (def) { board.appendChild(coluna(def, registros)); });
-    root.appendChild(board);
-
-    if (!registros.length) {
-      root.appendChild(h("div", { class: "mt-2" }, ui.empty("Nenhuma produção agendada ainda. Use \"Agendar produção\" para começar.")));
-    }
   }
 
   C.registerModule({ id: "producao", label: "Produção", icon: "producao", order: 7, render: render });

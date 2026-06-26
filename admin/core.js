@@ -9,7 +9,7 @@
 window.Cellos = (function () {
   "use strict";
 
-  const KEY = "cellos_db_v8";
+  const KEY = "cellos_db_v9";
 
   /* ---------- utilitários básicos ---------- */
   function uid(prefix) {
@@ -254,11 +254,14 @@ window.Cellos = (function () {
     ];
     receitas.forEach(function (r) { r.custoEstimado = Math.round(r.ingredientes.reduce(function (s, i) { return s + custoIngredienteSeed(i); }, 0) * 100) / 100; });
 
+    // produção: vinculada à RECEITA (sem quantidade planejada). Guarda quem fez / quando.
     const producao = [
-      { id: uid("prod"), produto: "Gelato de Pistache", receitaId: "rec_pistache", qtdPlanejada: 5, unidade: "kg", dataAgendada: daysFromNow(0), prazo: daysFromNow(1), status: "em_producao", responsavel: "Marco", obs: "Reposição da câmara." },
-      { id: uid("prod"), produto: "Sorbet de Morango", receitaId: "rec_morango", qtdPlanejada: 4, unidade: "kg", dataAgendada: daysFromNow(1), prazo: daysFromNow(2), status: "agendada", responsavel: "Júlia", obs: "" },
-      { id: uid("prod"), produto: "Stracciatella", receitaId: "rec_strac", qtdPlanejada: 5, unidade: "kg", dataAgendada: daysFromNow(-1), prazo: daysFromNow(0), status: "concluida", responsavel: "Marco", obs: "Lote dentro do padrão." },
-      { id: uid("prod"), produto: "Gelato de Avelã", receitaId: "rec_avela", qtdPlanejada: 5, unidade: "kg", dataAgendada: daysFromNow(2), prazo: daysFromNow(3), status: "agendada", responsavel: "Marco", obs: "Conferir estoque de avelã (abaixo do mínimo)." }
+      { id: uid("prod"), produto: "Gelato de Pistache", receitaId: "rec_pistache", dataAgendada: daysFromNow(0), prazo: daysFromNow(1), status: "em_producao", responsavel: "Marco", obs: "Reposição da câmara.", criadoEm: daysFromNow(-1) + "T18:00:00", iniciadoPor: "Marco", iniciadoEm: daysFromNow(0) + "T08:30:00" },
+      { id: uid("prod"), produto: "Sorbet de Morango", receitaId: "rec_morango", dataAgendada: daysFromNow(1), prazo: daysFromNow(2), status: "agendada", responsavel: "Júlia", obs: "", criadoEm: daysFromNow(0) + "T17:00:00" },
+      { id: uid("prod"), produto: "Gelato de Avelã", receitaId: "rec_avela", dataAgendada: daysFromNow(2), prazo: daysFromNow(3), status: "agendada", responsavel: "Marco", obs: "Conferir estoque de avelã (abaixo do mínimo).", criadoEm: daysFromNow(0) + "T17:05:00" },
+      { id: uid("prod"), produto: "Stracciatella", receitaId: "rec_strac", dataAgendada: daysFromNow(-1), prazo: daysFromNow(0), status: "concluida", responsavel: "Marco", obs: "Lote dentro do padrão.", criadoEm: daysFromNow(-2) + "T16:00:00", concluidoPor: "Marco", concluidoEm: daysFromNow(-1) + "T11:20:00" },
+      { id: uid("prod"), produto: "Gelato de Avelã", receitaId: "rec_avela", dataAgendada: daysFromNow(-2), prazo: daysFromNow(-1), status: "concluida", responsavel: "Júlia", obs: "", criadoEm: daysFromNow(-3) + "T16:00:00", concluidoPor: "Júlia", concluidoEm: daysFromNow(-2) + "T10:40:00" },
+      { id: uid("prod"), produto: "Sorbet de Morango", receitaId: "rec_morango", dataAgendada: daysFromNow(-1), prazo: daysFromNow(0), status: "excluida", responsavel: "Pedro", obs: "Cancelado — faltou polpa.", criadoEm: daysFromNow(-1) + "T09:00:00", excluidoPor: "Marco", excluidoEm: daysFromNow(0) + "T09:30:00" }
     ];
 
     const limpezaTarefas = [
@@ -855,23 +858,30 @@ window.Cellos = (function () {
   }
 
   // Recebe uma compra: dá entrada no estoque, registra movimentações e atualiza custo/validade.
+  // Recebe a compra -> joga AUTOMATICAMENTE no estoque (entrada + saldo + custo + validade).
+  // opts.itens (opcional): [{itemId, qtd, validade}] para ajustar qtd recebida / validade por item.
   function receberCompra(compraId, opts) {
     opts = opts || {};
     const c = find("compras", compraId);
     if (!c || c.status === "recebido") return null;
     c.status = "recebido";
     c.dataRecebido = todayISO();
+    const over = {};
+    (opts.itens || []).forEach(function (o) { over[o.itemId] = o; });
     c.itens.forEach(function (li) {
       const it = find("itens", li.itemId);
-      if (it) {
-        it.qtd = Math.round((it.qtd + (Number(li.qtd) || 0)) * 1000) / 1000;
-        if (li.custoUnit) it.custoUnit = li.custoUnit;
-        if (opts.validade) it.validade = opts.validade;
-        db.movimentacoes.push({
-          id: uid("mov"), datetime: nowISO(), itemId: it.id, tipo: "entrada", qtd: Number(li.qtd) || 0,
-          localId: it.localId, motivo: "Compra recebida", responsavel: opts.responsavel || "Estoque", refId: c.id
-        });
-      }
+      if (!it) return;
+      const o = over[li.itemId] || {};
+      const qtdReceb = (o.qtd != null ? Number(o.qtd) : Number(li.qtd)) || 0;
+      li.qtdRecebida = qtdReceb;
+      it.qtd = Math.round((it.qtd + qtdReceb) * 1000) / 1000;
+      if (li.custoUnit) it.custoUnit = li.custoUnit;            // atualiza o custo (última compra)
+      const val = o.validade || opts.validade || li.validade;
+      if (val) { it.validade = val; li.validade = val; }        // nova validade do lote
+      db.movimentacoes.push({
+        id: uid("mov"), datetime: nowISO(), itemId: it.id, tipo: "entrada", qtd: qtdReceb,
+        localId: it.localId, motivo: "Compra recebida", responsavel: opts.responsavel || "Estoque", refId: c.id
+      });
     });
     save();
     return c;
@@ -944,6 +954,13 @@ window.Cellos = (function () {
     estoqueBaixo: function () {
       return table("itens").filter(function (it) { return it.qtd <= it.qtdMin; });
     },
+    // sugestão de reposição: itens abaixo do mínimo + quanto comprar (até o máximo) + último custo
+    sugestaoReposicao: function () {
+      return this.estoqueBaixo().map(function (it) {
+        const alvo = it.qtdMax || (it.qtdMin || 1) * 2;
+        return { item: it, sugerido: Math.max(1, Math.round((alvo - it.qtd) * 100) / 100), custoUnit: it.custoUnit || 0, fornecedorId: it.fornecedorId || null };
+      });
+    },
     validadeProxima: function (dias) {
       return table("itens").filter(function (it) {
         if (!it.validade) return false;
@@ -983,7 +1000,7 @@ window.Cellos = (function () {
       return table("limpezaRegistros").filter(function (r) { return r.data === hoje; });
     },
     producaoPendente: function () {
-      return table("producao").filter(function (p) { return p.status !== "concluida"; });
+      return table("producao").filter(function (p) { return p.status === "agendada" || p.status === "em_producao"; });
     },
     // perdas
     perdasNoPeriodo: function (dias) {
@@ -1539,7 +1556,19 @@ window.Cellos = (function () {
     if (titleEl) titleEl.textContent = mod.label;
     try { mod.render(mountEl); }
     catch (e) { mountEl.appendChild(h("div", { class: "empty-state", text: "Erro ao carregar o módulo: " + e.message })); console.error(e); }
+    updateNavBadges();
     if (window.innerWidth < 900) document.body.classList.remove("nav-open");
+  }
+  // badges de alerta no menu (ex.: Compras mostra quantos itens precisam de reposição)
+  function updateNavBadges() {
+    getModules().forEach(function (m) {
+      const el = document.querySelector('.nav-badge[data-badge="' + m.id + '"]');
+      if (!el) return;
+      let n = null;
+      try { n = m.badge ? m.badge() : null; } catch (e) { n = null; }
+      if (n && n > 0) { el.textContent = n; el.style.display = "inline-flex"; el.title = (n + " precisando de atenção"); }
+      else { el.textContent = ""; el.style.display = "none"; }
+    });
   }
   function boot(mount) {
     mountEl = mount;
@@ -1549,13 +1578,14 @@ window.Cellos = (function () {
       getModules().forEach(function (m) {
         const item = h("a", {
           class: "nav-item", href: "#" + m.id, dataset: { mod: m.id },
-          html: '<span class="nav-ic">' + icon(m.icon, 19) + '</span><span>' + m.label + "</span>"
+          html: '<span class="nav-ic">' + icon(m.icon, 19) + '</span><span style="flex:1">' + m.label + '</span><span class="nav-badge" data-badge="' + m.id + '" style="display:none"></span>'
         });
         sidebar.appendChild(item);
       });
     }
     window.addEventListener("hashchange", function () { render(location.hash.slice(1)); });
     render(location.hash.slice(1) || getModules()[0].id);
+    updateNavBadges();
   }
 
   /* ---------- API pública ---------- */
